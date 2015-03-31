@@ -6,7 +6,9 @@ networks in Python.
 [Python 2.7.X](https://www.python.org/downloads/release/python-279/) (all other
 versions are untested)
 
-[Numpy](http://www.numpy.org/)
+[Numpy] (http://www.numpy.org/)
+
+[matplotlib] (http://matplotlib.org/)
 
 If you are new to Python, it is recommended that you use the following
 procedure to obtain the dependencies:
@@ -14,8 +16,7 @@ procedure to obtain the dependencies:
 1) If you don't have pip (check in your Python27/Scripts folder) obtain it
 from [here](https://pip.pypa.io/en/latest/installing.html).
 
-2) Install the dependencies using pip:
-pip install numpy
+2) Install the dependencies using pip: `pip install numpy matplotlib`
 
 ## Usage
 Download this repo and inside the "src" folder execute `python setup.py

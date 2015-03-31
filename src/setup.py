@@ -17,12 +17,13 @@ import shutil
 # Install the program
 setup(
 	name='annt',
-	version='0.1.0',
+	version='0.2.0',
 	description="Artificial Neural Network Toolbox",
 	author='James Mnatzaganian',
 	author_email='jamesmnatzaganian@outlook.com',
 	url='http://techtorials.me',
-	packages=['annt']
+	packages=['annt', 'annt.examples'],
+	package_data={'annt.examples':['data/mnist.pkl']}
 	)
 
 # Remove the unnecessary build folder
