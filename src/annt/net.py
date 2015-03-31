@@ -229,3 +229,47 @@ class LinearRegressionNetwork(Net):
 			test_cost[i] = cost(_run(test_data), test_labels)
 		
 		return (train_cost, test_cost)
+
+class MultiayerPerception(Net):
+	"""
+	Base class for a multilayer perception
+	"""
+	
+	def __init__(self):
+		"""
+		Initialize the class instance.
+		"""
+		
+		
+	
+	def step(self, x, y=None):
+		"""
+		Compute a single step of the network.
+		
+		@param x: The input data to compute for this step.
+		
+		@param y: The expected output.
+		"""
+	
+	
+	def run(self, train_data, train_labels, test_data, test_labels,
+		nepochs=1):
+		"""
+		Simulate the entire network.
+		
+		@param train_data: The data to train with. This must be an iterable
+		returning a numpy array.
+		
+		@param train_labels: The training labels. This must be an iterable
+		with the same length as train_data.
+		
+		@param test_data: The data to test with. This must be an iterable
+		returning a numpy array.
+		
+		@param test_labels: The testing labels. This must be an iterable
+		with the same length as train_data.
+		
+		@param nepochs: The number of training epochs to perform.
+		
+		@return: A tuple containing the training and test costs.
+		"""

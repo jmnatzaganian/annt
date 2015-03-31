@@ -84,3 +84,28 @@ class Linear(Activation):
 		"""
 		
 		return self.m * x
+
+class Sigmoid(Activation):
+	"""
+	Base class for a sigmoid activation function.
+	"""
+	
+	def __init__(self):
+		"""
+		Initializes this sigmoid object.
+		"""
+		
+		pass
+	
+	def compute(self, x):
+		"""
+		Compute the activation function.
+		
+		@param x: A numpy array representing the input data. This should be a
+		vector.
+		
+		@return: A vector containing the element-wise result of applying the
+		activation function to the input.
+		"""
+		
+		return 1 / (1 + np.exp(-x))
