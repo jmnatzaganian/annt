@@ -29,7 +29,8 @@ __docformat__ = 'epytext'
 import cPickle, pkgutil, os
 
 # Program imports
-from annt.net import LinearRegressionNetwork
+from annt.net  import LinearRegressionNetwork
+from annt.plot import basic_epoch
 
 def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
@@ -65,8 +66,9 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	train_cost, test_cost = net.run(train_data, train_labels, test_data,
 		test_labels, nepochs)
 	
-	print train_cost
-	print test_cost
+	# Plot the results
+	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',
+		'Linear Regression Network - Test')
 
 if __name__ == '__main__':
 	# Get the data and map the pixels to floats
