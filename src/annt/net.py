@@ -107,9 +107,12 @@ class Net(object):
 		if len(shape) == 1:
 			self.weights = np.random.uniform(min_weight, max_weight, shape[0])
 		else:
-			new_shape = [2] + list(shape)
-			self.weights = np.array([np.random.uniform(min_weight, max_weight,
-				(c, p)) for c, p in zip(new_shape[1:], new_shape[:-1])])
+			# Input weights aren't trained, so set them to 1, everything else
+			# is set to be random. Last dimension is incremented by 1 to allow
+			# for the bias.
+			self.weights = np.array([np.ones(shape[0])] + [np.random.uniform(
+				min_weight, max_weight, (c, p + 1)) for c, p in zip(shape[1:],
+				shape[:-1])])
 	
 	def enable_learning(self):
 		"""
@@ -240,7 +243,7 @@ class LinearRegressionNetwork(Net):
 		
 		return (train_cost, test_cost)
 
-class MultiayerPerception(Net):
+class MultilayerPerception(Net):
 	"""
 	Base class for a multilayer perception
 	"""
@@ -292,11 +295,31 @@ class MultiayerPerception(Net):
 			**hidden_activation_kargs)
 		
 		# Construct the weights
-		new_shape = [1 + s for s in shape[:-1]] + [shape[-1]]
-		self.initialize_weights(new_shape, min_weight, max_weight)
+		self.initialize_weights(shape, min_weight, max_weight)
 		
-		# Construct the internal outputs
+		# Construct the internal outputs and deltas
+		new_shape    = [1 + s for s in shape[:-1]] + [shape[-1]]
 		self.outputs = np.array([np.zeros(s) for s in new_shape])
+		self.deltas  = self.outputs.copy()
+	
+	def score(self, y, y_exp):
+		"""
+		Compute the accuracy. If there is competition between which node should
+		be the winner, a random one is chosen.
+		
+		@param y: The true output.
+		
+		@param y_exp: The expected output.
+		
+		@return: The accuracy.
+		"""
+		
+		accuracy = 0.
+		for predicted, expected in zip(y, y_exp):
+			indexes = np.where(predicted == np.max(predicted))[0]
+			np.random.shuffle(indexes)
+			accuracy += 1 if expected[indexes[0]] == 1 else 0
+		return accuracy / y_exp.shape[0]
 	
 	def step(self, x, y=None):
 		"""
@@ -307,23 +330,47 @@ class MultiayerPerception(Net):
 		@param y: The expected output.
 		"""
 		
-		# Add bias
-		full_x = np.concatenate((self.bias, x))
-		
 		# Calculate the outputs for the input layer
-		self.outputs[0] = [self.input_activation.compute(full_x * weights) for weights in
-			self.weights[0]]
+		full_x          = np.concatenate((self.bias, x))
+		self.outputs[0] = self.input_activation.compute(full_x)
 		
 		# Calculate all other outputs
 		for layer, layer_weights in enumerate(self.weights[1:], 1):
-			self.outputs[layer] = [np.sum(self.hidden_activation.compute(y_est
-				* weights)) for weights in layer_weights]
+			# Loop layers
+			for i, weights in enumerate(layer_weights):
+				# Loop nodes in layer
+				self.outputs[layer][i] = self.hidden_activation.compute(np.sum(
+						self.outputs[layer - 1] * weights))
 		
-		# Calculate output deltas
-		
-		
-		# Calculate other deltas
-		
+		if self.learning:
+			# Calculate output deltas
+			self.deltas[-1] = self.outputs[-1] - y
+			
+			# Calculate hidden deltas
+			for layer in xrange(-2, -self.deltas.shape[0], -1):
+				# Loop layers in reverse
+				
+				# Calculate dot product
+				dot = np.zeros(self.weights[layer + 1].shape[1] - 1)
+				for i, weights in enumerate(self.weights[layer + 1].T[1:,]):
+					dot[i] = np.dot(self.deltas[layer + 1], weights)
+				
+				# Calculate deltas
+				self.deltas[layer] = self.hidden_activation.compute_derivative(
+					self.outputs[layer][1:,]) * dot
+			
+			# Update the weights
+			for layer in xrange(-1, -self.deltas.shape[0], -1):
+				# Loop layers in reverse
+				for i, weights in enumerate(self.weights[layer]):
+					# Loop nodes in layer
+					self.weights[layer][i] += -self.learning_rate *           \
+						self.deltas[layer][i] * self.outputs[layer - 1]
+			
+			# import pdb; pdb.set_trace()
+			# import sys; sys.exit()
+			
+			return self.outputs[-1]
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
 		nepochs=1):
@@ -344,7 +391,19 @@ class MultiayerPerception(Net):
 		
 		@param nepochs: The number of training epochs to perform.
 		
-		@return: A tuple containing the training and test costs.
+		@return: A tuple containing the training and test accuracies.
 		"""
 		
-		self.step(train_data[0], train_labels[0])
+		_run = self._run; score = self.score
+		train_accuracy = np.zeros(nepochs); test_accuracy  = np.zeros(nepochs)
+		for i in xrange(nepochs):
+			# Compute training accuracy
+			self.enable_learning()
+			train_accuracy[i] = score(_run(train_data, train_labels),
+				train_labels)
+			
+			# Compute testing accuracy
+			self.disable_learning()
+			test_accuracy[i] = score(_run(test_data), test_labels)
+		
+		return (train_accuracy, test_accuracy)

@@ -28,9 +28,31 @@ __docformat__ = 'epytext'
 # Native imports
 import cPickle, pkgutil, os
 
+# Third party imports
+import numpy as np
+
 # Program imports
-from annt.net  import MultiayerPerception
+from annt.net  import MultilayerPerception
 from annt.plot import basic_epoch
+
+def one_hot(x, num_items):
+	"""
+	Convert an array into a one-hot encoding. The indices in x mark which bits
+	should be set. The length of each sub-array will be determined by
+	num_items.
+	
+	@param x: The array indexes to mark as valid. This should be a numpy array.
+	
+	@param num_items: The number of items each encoding should contain. This
+	should be at least as large as the max value in x + 1.
+	
+	@return: An encoded array.
+	"""
+	
+	y = np.repeat([np.zeros(num_items, dtype='uint8')], x.shape[0], 0)
+	for i, ix in enumerate(x):
+		y[i, ix] = 1
+	return y
 
 def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
@@ -52,7 +74,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
 	
 	# Create the network
-	net =  MultiayerPerception(
+	net =  MultilayerPerception(
 		shape                  = [train_data.shape[1], 100, 10],
 		bias                   = 1,
 		learning_rate          = 0.001,
@@ -65,6 +87,8 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	train_accuracy, test_accuracy = net.run(train_data, train_labels,
 		test_data, test_labels, nepochs)
 	
+	print train_accuracy, test_accuracy
+	
 	# Plot the results
 	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),
 		'Accuracy [%]', 'MLP - Example')
@@ -76,7 +100,7 @@ if __name__ == '__main__':
 		(train_data, train_labels), (test_data, test_labels) = cPickle.load(f)
 	
 	# Scale pixel values to be between 0 and 1
-	# Scale label values to be between 0 and 1
+	# Convert labeled data to one-hot encoding
 	# Run the network
-	main(train_data/255., train_labels/9., test_data/255., test_labels/9.,
-		nepochs=10)
+	main(train_data/255., one_hot(train_labels, 10), test_data/255.,
+		one_hot(test_labels, 10), nepochs=100)
