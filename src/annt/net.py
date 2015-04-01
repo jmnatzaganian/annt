@@ -97,14 +97,19 @@ class Net(object):
 		Initialize the weights of the network. Initialization is done randomly.
 		
 		@param shape: The number of nodes in the entire network, excluding any
-		bias terms.
+		bias terms. This parameter must be a sequence.
 		
 		@param min_weight: The minimum weight value.
 		
 		@param max_weight: The maximum weight value.
 		"""
 		
-		self.weights = np.random.uniform(min_weight, max_weight, shape)
+		if len(shape) == 1:
+			self.weights = np.random.uniform(min_weight, max_weight, shape[0])
+		else:
+			new_shape = [2] + list(shape)
+			self.weights = np.array([np.random.uniform(min_weight, max_weight,
+				(c, p)) for c, p in zip(new_shape[1:], new_shape[:-1])])
 	
 	def enable_learning(self):
 		"""
@@ -157,10 +162,11 @@ class LinearRegressionNetwork(Net):
 		self.learning      = learning
 		
 		# Initialize the activation function
-		self.activation = create_activation(**activation_kargs)
+		self.activation = create_activation(activation_type,
+			**activation_kargs)
 		
 		# Construct the weights
-		self.initialize_weights(ninputs + 1, min_weight, max_weight)
+		self.initialize_weights((ninputs + 1,), min_weight, max_weight)
 	
 	def cost(self, y, y_exp):
 		"""
@@ -187,9 +193,10 @@ class LinearRegressionNetwork(Net):
 		@return: The computed output.
 		"""
 		
+		# Add bias
 		full_x = np.concatenate((self.bias, x))
 		
-		# Compute the output estimate
+		# Calculate the outputs
 		y_est = np.sum(self.activation.compute(full_x *	self.weights))
 		
 		# Update the error using online learning
@@ -238,27 +245,58 @@ class MultiayerPerception(Net):
 	Base class for a multilayer perception
 	"""
 	
-	def __init__(self, shape, bias=1, learning_rate=0.4, m=1, min_weight=-1,
-		max_weight=1, learning=True):
+	def __init__(self, shape, bias=1, learning_rate=0.4, min_weight=-1,
+		max_weight=1, input_activation_type='linear',
+		input_activation_kargs={'m':1}, hidden_activation_type='sigmoid',
+		hidden_activation_kargs={},
+		learning=True):
 		"""
 		Initializes this linear regression network.
 		
 		@param shape: The number of layers and the number of nodes per layer
 		(excluding the bias).
 		
-		@param bias: The bias input. Set to "0" to disable.
-		
-		@param m: The slope of the line. Use the default value of "1" for the
-		unity function.
+		@param bias: The bias input. This is applied to all input and hidden
+		layers. Set to "0" to disable.
 		
 		@param min_weight: The minimum weight value.
 		
 		@param max_weight: The maximum weight value.
 		
+		@param input_activation_type: The type activation function to use for
+		the input layer. This must be one of the classes implemented in
+		L{annt.activation}.
+		
+		@param input_activation_kargs: Any keyword arguments for the input
+		activation function.
+		
+		@param hidden_activation_type: The type activation function to use for
+		the hidden layer. This must be one of the classes implemented in
+		L{annt.activation}.
+		
+		@param hidden_activation_kargs: Any keyword arguments for the hidden
+		activation function.
+		
 		@param learning: Boolean denoting if the network is currently learning.
 		"""
 		
+		# Store the params
+		self.bias          = np.array([bias])
+		self.learning_rate = learning_rate
+		self.learning      = learning
 		
+		# Initialize the activation functions
+		self.input_activation = create_activation(input_activation_type,
+			**input_activation_kargs)
+		self.hidden_activation = create_activation(hidden_activation_type,
+			**hidden_activation_kargs)
+		
+		# Construct the weights
+		new_shape = [1 + s for s in shape[:-1]] + [shape[-1]]
+		self.initialize_weights(new_shape, min_weight, max_weight)
+		
+		# Construct the internal outputs
+		self.outputs = np.array([np.zeros(s) for s in new_shape])
 	
 	def step(self, x, y=None):
 		"""
@@ -268,7 +306,24 @@ class MultiayerPerception(Net):
 		
 		@param y: The expected output.
 		"""
-	
+		
+		# Add bias
+		full_x = np.concatenate((self.bias, x))
+		
+		# Calculate the outputs for the input layer
+		self.outputs[0] = [self.input_activation.compute(full_x * weights) for weights in
+			self.weights[0]]
+		
+		# Calculate all other outputs
+		for layer, layer_weights in enumerate(self.weights[1:], 1):
+			self.outputs[layer] = [np.sum(self.hidden_activation.compute(y_est
+				* weights)) for weights in layer_weights]
+		
+		# Calculate output deltas
+		
+		
+		# Calculate other deltas
+		
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
 		nepochs=1):
@@ -291,3 +346,5 @@ class MultiayerPerception(Net):
 		
 		@return: A tuple containing the training and test costs.
 		"""
+		
+		self.step(train_data[0], train_labels[0])

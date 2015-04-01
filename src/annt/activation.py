@@ -139,6 +139,19 @@ class Linear(Activation):
 		"""
 		
 		return self.m * x
+	
+	def compute_derivative(self, x):
+		"""
+		Compute the activation function's derivative.
+		
+		@param x: A numpy array representing the input data. This should be a
+		vector.
+		
+		@return: A vector containing the element-wise result of applying the
+		activation function to the input.
+		"""
+		
+		return np.repeat(self.m * len(x))
 
 class Sigmoid(Activation):
 	"""
@@ -164,3 +177,18 @@ class Sigmoid(Activation):
 		"""
 		
 		return 1 / (1 + np.exp(-x))
+	
+	def compute_derivative(self, x):
+		"""
+		Compute the activation function's derivative.
+		
+		@param x: A numpy array representing the input data. This should be a
+		vector.
+		
+		@return: A vector containing the element-wise result of applying the
+		activation function to the input.
+		"""
+		
+		y = self.compute(x)
+		
+		return y * (1 - y)
