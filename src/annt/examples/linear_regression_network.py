@@ -53,13 +53,15 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	
 	# Create the network
 	net = LinearRegressionNetwork(
-		ninputs       = train_data.shape[1],
-		bias          = 1,
-		learning_rate = 0.001,
-		m             = 1,
-		min_weight    = -1,
-		max_weight    = 1,
-		learning      = True
+		ninputs          = train_data.shape[1],
+		bias             = 1,
+		learning_rate    = 0.001,
+		m                = 1,
+		min_weight       = -1,
+		max_weight       = 1,
+		activation_type  = 'linear',
+		activation_kargs = {'m':1},
+		learning         = True
 	)
 	
 	# Simulate the network

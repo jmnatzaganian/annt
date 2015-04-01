@@ -25,7 +25,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 # Program imports
-from annt.activation import Linear
+from annt.activation import create_activation
 
 ###############################################################################
 ########## Class Template
@@ -129,8 +129,9 @@ class LinearRegressionNetwork(Net):
 	Base class for a liner regression network.
 	"""
 	
-	def __init__(self, ninputs, bias=1, learning_rate=0.4, m=1, min_weight=-1,
-		max_weight=1, learning=True):
+	def __init__(self, ninputs, bias=1, learning_rate=0.4, min_weight=-1,
+		max_weight=1, activation_type='linear', activation_kargs={},
+		learning=True):
 		"""
 		Initializes this linear regression network.
 		
@@ -138,12 +139,14 @@ class LinearRegressionNetwork(Net):
 		
 		@param bias: The bias input. Set to "0" to disable.
 		
-		@param m: The slope of the line. Use the default value of "1" for the
-		unity function.
-		
 		@param min_weight: The minimum weight value.
 		
 		@param max_weight: The maximum weight value.
+		
+		@activation_type: The type activation function to use. This must be one
+		of the classes implemented in L{annt.activation}.
+		
+		@activation_kargs: Any keyword arguments for the activation function.
 		
 		@param learning: Boolean denoting if the network is currently learning.
 		"""
@@ -154,7 +157,7 @@ class LinearRegressionNetwork(Net):
 		self.learning      = learning
 		
 		# Initialize the activation function
-		self.activation = Linear(m)
+		self.activation = create_activation(**activation_kargs)
 		
 		# Construct the weights
 		self.initialize_weights(ninputs + 1, min_weight, max_weight)
@@ -235,9 +238,24 @@ class MultiayerPerception(Net):
 	Base class for a multilayer perception
 	"""
 	
-	def __init__(self):
+	def __init__(self, shape, bias=1, learning_rate=0.4, m=1, min_weight=-1,
+		max_weight=1, learning=True):
 		"""
-		Initialize the class instance.
+		Initializes this linear regression network.
+		
+		@param shape: The number of layers and the number of nodes per layer
+		(excluding the bias).
+		
+		@param bias: The bias input. Set to "0" to disable.
+		
+		@param m: The slope of the line. Use the default value of "1" for the
+		unity function.
+		
+		@param min_weight: The minimum weight value.
+		
+		@param max_weight: The maximum weight value.
+		
+		@param learning: Boolean denoting if the network is currently learning.
 		"""
 		
 		

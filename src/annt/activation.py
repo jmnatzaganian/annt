@@ -24,6 +24,61 @@ from abc import ABCMeta, abstractmethod
 # Third party imports
 import numpy as np
 
+# Program imports
+from annt.exception_handler import BaseException, wrap_error
+
+###############################################################################
+########## Exception Handling
+###############################################################################
+
+class UnsupportedActivationType(BaseException):
+	"""
+	Exception if the activation type is invalid.
+	"""
+	
+	def __init__(self, type):
+		"""
+		Initialize this class.
+		
+		@param type: The type of activation function to use.
+		"""
+		
+		self.msg = wrap_error('The type, {0}, is unsupported. The current '
+			'types are {1}'.format(name, ', '.join(['linear', 'sigmoid'])))
+
+###############################################################################
+########## Functions
+###############################################################################
+
+def get_activation(type):
+	"""
+	Returns a reference to an activation object.
+	
+	@param type: The type of activation function to use.
+	
+	@return: An activation object reference.
+	
+	@raise UnsupportedActivationType: Raised if type is invalid.
+	"""
+	
+	if type == 'linear':
+		return Linear
+	elif type == 'sigmoid':
+		return Sigmoid
+	else:
+		raise UnsupportedActivationType(type)
+
+def create_activation(type, **kargs):
+	"""
+	Creates an activation object instance.
+	
+	@param type: The type of activation function to use.
+	
+	@param kargs: Any keyword arguments.
+	"""
+	
+	return get_activation(type)(**kargs)
+
 ###############################################################################
 ########## Class Template
 ###############################################################################
