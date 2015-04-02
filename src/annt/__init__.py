@@ -38,7 +38,9 @@ Installation
 
 Getting Started
 ===============
-	WIP
+	- Click U{here<http://techtorials.me/mldata/index.html>} to access the
+	API.
+	- Check out the L{examples<annt.examples>}.
 
 Package Organization
 ====================

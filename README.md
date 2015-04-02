@@ -25,6 +25,8 @@ install`.
 This package is platform independent, and should work on any system running
 Python 2.7.X.
 
+Click [here](http://techtorials.me/annt/index.html) to access the API.
+
 ## Author
 The original author of this code was James Mnatzaganian. For contact info, as
 well as other details, see his corresponding [website](http://techtorials.me).
