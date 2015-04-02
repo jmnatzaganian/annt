@@ -26,7 +26,7 @@ import numpy as np
 
 # Program imports
 from annt.util import one_hot, mnist_data
-from annt.net  import MultilayerPerception
+from annt.net  import ExtremeLearningMachine
 from annt.plot import basic_epoch
 
 def main(train_data, train_labels, test_data, test_labels, nepochs=1):
@@ -49,7 +49,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
 	
 	# Create the network
-	net =  MultilayerPerception(
+	net =  ExtremeLearningMachine(
 		shape                  = [train_data.shape[1], 100, 10],
 		bias                   = 1,
 		learning_rate          = 0.001,
@@ -69,7 +69,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	
 	# Plot the results
 	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),
-		'Accuracy [%]', 'MLP - Example', legend_location='upper left')
+		'Accuracy [%]', 'ELM - Example', legend_location='upper left')
 
 if __name__ == '__main__':
 	# Get the data

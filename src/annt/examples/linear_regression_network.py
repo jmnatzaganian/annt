@@ -2,10 +2,6 @@
 #	
 # Author         : James Mnatzaganian
 # Contact        : http://techtorials.me
-# Organization   : NanoComputing Research Lab - Rochester Institute of
-# Technology
-# http://www.rit.edu/kgcoe/facility/nanocomputing-research-laboratory
-# http://nano.ce.rit.edu
 # Date Created   : 03/31/15
 #	
 # Description    : Example showing how to create and use a linear regression
@@ -25,13 +21,11 @@ G{packagetree annt}
 
 __docformat__ = 'epytext'
 
-# Native imports
-import cPickle, pkgutil, os
-
 # Third party imports
 import numpy as np
 
 # Program imports
+from annt.util import mnist_data
 from annt.net  import LinearRegressionNetwork
 from annt.plot import basic_epoch
 
@@ -79,10 +73,8 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 		'Linear Regression Network - Example', semilog=True)
 
 if __name__ == '__main__':
-	# Get the data and map the pixels to floats
-	with open(os.path.join(pkgutil.get_loader('annt.examples').filename,
-		'data', 'mnist.pkl'), 'rb') as f:
-		(train_data, train_labels), (test_data, test_labels) = cPickle.load(f)
+	# Get the data
+	(train_data, train_labels), (test_data, test_labels) = mnist_data()
 	
 	# Scale pixel values to be between 0 and 1
 	# Scale label values to be between 0 and 1

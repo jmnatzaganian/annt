@@ -2,10 +2,6 @@
 #	
 # Author         : James Mnatzaganian
 # Contact        : http://techtorials.me
-# Organization   : NanoComputing Research Lab - Rochester Institute of
-# Technology
-# http://www.rit.edu/kgcoe/facility/nanocomputing-research-laboratory
-# http://nano.ce.rit.edu
 # Date Created   : 03/31/15
 #	
 # Description    : Module for plotting.

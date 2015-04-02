@@ -245,7 +245,7 @@ class LinearRegressionNetwork(Net):
 
 class MultilayerPerception(Net):
 	"""
-	Base class for a multilayer perception
+	Base class for a multilayer perception.
 	"""
 	
 	def __init__(self, shape, bias=1, learning_rate=0.4, min_weight=-1,
@@ -254,7 +254,7 @@ class MultilayerPerception(Net):
 		hidden_activation_kargs={},
 		learning=True):
 		"""
-		Initializes this linear regression network.
+		Initializes this multilayer perception network.
 		
 		@param shape: The number of layers and the number of nodes per layer
 		(excluding the bias).
@@ -420,3 +420,61 @@ class MultilayerPerception(Net):
 			test_accuracy[i] = score(_run(test_data), test_labels)
 		
 		return (train_accuracy, test_accuracy)
+
+class ExtremeLearningMachine(MultilayerPerception):
+	"""
+	Base class for an extreme learning machine.
+	"""
+		
+	def step(self, x, y=None):
+		"""
+		Compute a single step of the network.
+		
+		@param x: The input data to compute for this step.
+		
+		@param y: The expected output.
+		"""
+		
+		#######################################################################
+		######## Calculate the outputs using forward propagation
+		#######################################################################
+		
+		# Calculate the outputs for the input layer
+		self.outputs[0][0]  = self.input_activation.compute(self.bias)
+		self.outputs[0][1:] = self.input_activation.compute(x)
+		
+		# Calculate the outputs for the hidden layer(s)
+		#   - First hidden layer -> last hidden layer
+		for layer, layer_weights in enumerate(self.weights[:-1], 1):
+			self.outputs[layer][0]  = self.hidden_activation.compute(self.bias)
+			self.outputs[layer][1:] = self.hidden_activation.compute(np.inner(
+				self.outputs[layer - 1], layer_weights))
+		
+		# Calculate the outputs for the output layer
+		self.outputs[-1] = self.hidden_activation.compute(np.inner(
+				self.outputs[-2], self.weights[-1]))
+		
+		#######################################################################
+		######## Train the network using backpropagation
+		#######################################################################
+		
+		if self.learning:
+			
+			###################################################################
+			######## Calculate the deltas
+			###################################################################
+		
+			# Calculate output deltas
+			self.deltas[-1] = self.outputs[-1] - y
+			
+			###################################################################
+			######## Update the weights
+			###################################################################
+			
+			# Update the output weights
+			for i, weights in enumerate(self.weights[-1]):
+				self.weights[-1][i] += -self.learning_rate *                  \
+					self.deltas[-1][i] * self.outputs[-2]
+		
+		# Return the outputs from the output layer
+		return self.outputs[-1]
