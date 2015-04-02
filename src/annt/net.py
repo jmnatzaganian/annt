@@ -292,7 +292,7 @@ class UnsupervisedCostNet(SupervisedCostNet):
 			train_cost[i] = cost(_run(train_data), train_data)
 			self.timers.pause_timers('train')
 			self.timers.stop_timers('train_epoch')
-			if verbose: self.print_train(i, nepochs, train_cost)
+			if verbose: self._print_train(i, nepochs, train_cost)
 			
 			# Compute testing cost
 			self.timers.start_timers('test', 'test_epoch')
@@ -300,10 +300,10 @@ class UnsupervisedCostNet(SupervisedCostNet):
 			test_cost[i] = cost(_run(test_data), test_data)
 			self.timers.pause_timers('test')
 			self.timers.stop_timers('test_epoch')
-			if verbose: self.print_test(i, test_cost)
+			if verbose: self._print_test(i, test_cost)
 		
 		self.timers.stop_timers('global')
-		if verbose: self.print_final(nepochs, train_cost, test_cost)
+		if verbose: self._print_final(nepochs, train_cost, test_cost)
 		
 		return (train_cost, test_cost)
 
@@ -340,7 +340,7 @@ class SupervisedAccuracyNet(Net):
 		"""
 		
 		print '\nEpoch {0} of {1}:'.format(epoch + 1, nepochs)
-		print '  Training Accuracy : {0}'.format(train_accuracy[epoch])
+		print '  Training Accuracy : {0}%'.format(train_accuracy[epoch] * 100)
 		print '  Training Time     : {0}'.format(
 			self.timers.get_elapsed_time('train_epoch', True))
 	
@@ -354,7 +354,7 @@ class SupervisedAccuracyNet(Net):
 		at each epoch.
 		"""
 		
-		print '  Testing Accuracy  : {0}%'.format(test_accuracy[epoch])
+		print '  Testing Accuracy  : {0}%'.format(test_accuracy[epoch] * 100)
 		print '  Testing Time      : {0}'.format(
 			self.timers.get_elapsed_time('test_epoch', True))
 	
@@ -694,7 +694,7 @@ class MultilayerPerception(SupervisedAccuracyNet):
 			#   - Output -> first hidden layer
 			#     - Bias's weight -> last node's weight
 			for layer in xrange(-1, -self.deltas.shape[0], -1):
-				for i, weights in enumerate(self.weights[layer]):
+				for i in xrange(self.weights[layer].shape[0]):
 					self.weights[layer][i] += -self.learning_rate *           \
 						self.deltas[layer][i] * self.outputs[layer - 1]
 		
@@ -752,7 +752,7 @@ class ExtremeLearningMachine(MultilayerPerception):
 			###################################################################
 			
 			# Update the output weights
-			for i, weights in enumerate(self.weights[-1]):
+			for i in xrange(self.weights[-1].shape[0]):
 				self.weights[-1][i] += -self.learning_rate *                  \
 					self.deltas[-1][i] * self.outputs[-2]
 		
@@ -788,6 +788,9 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		
 		# Construct the weights
 		self.initialize_weights((ninputs, nclusters), min_weight, max_weight)
+		
+		# Construct the boost values
+		self.boost = np.ones(nclusters)
 	
 	def initialize_weights(self, shape, min_weight=-1, max_weight=1):
 		"""
@@ -815,9 +818,9 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		"""
 		
 		cost = 0.
-		for pattern in x:
-			for weights in self.weights:
-				cost += y * np.dot(weights - pattern)
+		for i, pattern in enumerate(x):
+			for j, weights in enumerate(self.weights.T):
+				cost += y[i][j] * np.sum((weights - pattern) ** 2)
 		return cost / 2
 	
 	def step(self, x):
@@ -827,4 +830,19 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		@param x: The input data to compute for this step.
 		"""
 		
-		pass
+		# Calculate the outputs
+		y = np.zeros(self.weights.shape[1])
+		for i, weights in enumerate(self.weights.T):
+			y[i] = self.boost[i] * np.sum((weights - x) ** 2)
+		min_ix    = np.argmin(y)
+		y[:]      = 0
+		y[min_ix] = 1
+		
+		# Increment boost, decrement boosts (not below 1)
+		
+		# Train the network
+		if self.learning:
+			for i, weights in enumerate(self.weights.T):
+				self.weights.T[i] += self.learning_rate * y[i] * (x - weights)
+		
+		return y

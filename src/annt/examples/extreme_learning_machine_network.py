@@ -60,7 +60,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 		test_data, test_labels, nepochs, True)
 	
 	# Plot the results
-	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),
+	basic_epoch((train_accuracy * 100, test_accuracy * 100), ('Train', 'Test'),
 		'Accuracy [%]', 'ELM - Example', legend_location='upper left')
 
 if __name__ == '__main__':
