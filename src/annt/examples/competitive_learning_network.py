@@ -1,18 +1,18 @@
-# extreme_learning_machine_network.py
+# competitive_learning_network.py
 #	
 # Author         : James Mnatzaganian
 # Contact        : http://techtorials.me
-# Date Created   : 03/31/15
+# Date Created   : 04/02/15
 #	
-# Description    : Example showing how to create and use an extreme learning
-# machine network.
+# Description    : Example showing how to create and use a competitive learning
+# network.
 # Python Version : 2.7.8
 #
 # License        : MIT License http://opensource.org/licenses/mit-license.php
 # Copyright      : (c) 2015 James Mnatzaganian
 
 """
-Example showing how to create and use a extreme learning machine network. This
+Example showing how to create and use a competitive learning network. This
 example uses a reduced set of data from the
 U{MNIST<http://yann.lecun.com/exdb/mnist/>} dataset.
 
@@ -23,12 +23,12 @@ __docformat__ = 'epytext'
 
 # Program imports
 from annt.util import one_hot, mnist_data
-from annt.net  import ExtremeLearningMachine
+from annt.net  import CompetitiveLearning
 from annt.plot import basic_epoch
 
 def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
-	Demonstrates an extreme learning machine network using MNIST.
+	Demonstrates a competitive learning network using MNIST.
 	
 	@param train_data: The data to train with. This must be an iterable
 	returning a numpy array.
@@ -46,22 +46,21 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
 	
 	# Create the network
-	net =  ExtremeLearningMachine(
-		shape                  = [train_data.shape[1], 100, 10],
-		bias                   = 1,
-		learning_rate          = 0.001,
-		min_weight             = -1,
-		max_weight             = 1,
-		hidden_activation_type = 'sigmoid'
+	net =  CompetitiveLearning(
+		ninputs       = 784,
+		nclusters     = 10,
+		learning_rate = 0.001,
+		min_weight    = -1,
+		max_weight    = 1
 	)
 	
 	# Simulate the network
-	train_accuracy, test_accuracy = net.run(train_data, train_labels,
-		test_data, test_labels, nepochs, True)
+	train_cost, test_cost = net.run(train_data, train_labels, test_data,
+		test_labels, nepochs, True)
 	
 	# Plot the results
-	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),
-		'Accuracy [%]', 'ELM - Example', legend_location='upper left')
+	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',
+		'Clustering - Example', semilog=True)
 
 if __name__ == '__main__':
 	# Get the data

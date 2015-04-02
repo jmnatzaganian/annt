@@ -28,7 +28,7 @@ from annt.plot import basic_epoch
 
 def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	"""
-	Demonstrates a  multilayer perceptron network using MNIST.
+	Demonstrates a multilayer perceptron network using MNIST.
 	
 	@param train_data: The data to train with. This must be an iterable
 	returning a numpy array.
