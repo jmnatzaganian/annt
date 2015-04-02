@@ -120,9 +120,10 @@ class Net(object):
 		
 		self.learning = False
 
-class CostNet(Net):
+class SupervisedCostNet(Net):
 	"""
-	Base class description for network that computes a cost function.
+	Base class description for network that computes a cost function using
+	unsupervised training.
 	"""
 	__metaclass__ = ABCMeta
 	
@@ -137,6 +138,66 @@ class CostNet(Net):
 		
 		@return: The cost.
 		"""
+	
+	def _print_train(self, epoch, nepochs, train_cost):
+		"""
+		Print the details about training.
+		
+		@param epoch: The current epoch number.
+		
+		@param nepochs: The total number of epochs.
+		
+		@param train_cost: A numpy array containing the training cost at each
+		epoch.
+		"""
+		
+		print '\nEpoch {0} of {1}:'.format(epoch + 1, nepochs)
+		print '  Training Cost     : {0}'.format(train_cost[epoch])
+		print '  Training Time     : {0}'.format(
+			self.timers.get_elapsed_time('train_epoch', True))
+	
+	def _print_test(self, epoch, test_cost):
+		"""
+		Print the details about testing.
+		
+		@param epoch: The current epoch number.
+		
+		@param test_cost: A numpy array containing the testing cost at each
+		epoch.
+		"""
+		
+		print '  Testing Cost      : {0}'.format(test_cost[epoch])
+		print '  Testing Time      : {0}'.format(
+			self.timers.get_elapsed_time('test_epoch', True))
+	
+	def _print_final(self, nepochs, train_cost, test_cost):
+		"""
+		Print the details final details.
+		
+		@param nepochs: The total number of epochs.
+		
+		@param train_cost: A numpy array containing the training cost at each
+		epoch.
+		
+		@param test_cost: A numpy array containing the testing cost at each
+		epoch.
+		"""
+		
+		print '\n' + '*' * 79
+		print '\nBest Training Cost : {0} at Epoch {1}'.format(np.min(
+			train_cost), np.argmin(train_cost) + 1)
+		print 'Best Testing Cost  : {0} at Epoch {1}'.format(np.min(
+			test_cost), np.argmin(test_cost) + 1)
+		print '\nTotal Execution Time        : {0}'.format(
+			self.timers.get_elapsed_time('global', True))
+		print 'Total Training Time         : {0}'.format(
+			self.timers.get_elapsed_time('train', True))
+		print 'Average Training Epoch Time : {0}'.format(
+			pretty_time(self.timers.get_elapsed_time('train') / nepochs))
+		print 'Total Testing Time          : {0}'.format(
+			self.timers.get_elapsed_time('test', True))
+		print 'Average Testing Epoch Time  : {0}'.format(
+			pretty_time(self.timers.get_elapsed_time('test') / nepochs))
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
 		nepochs=1, verbose=True):
@@ -177,11 +238,7 @@ class CostNet(Net):
 			train_cost[i] = cost(_run(train_data, train_labels), train_labels)
 			self.timers.pause_timers('train')
 			self.timers.stop_timers('train_epoch')
-			if verbose:
-				print '\nEpoch {0} of {1}:'.format(i + 1, nepochs)
-				print '  Training Cost     : {0}'.format(train_cost[i])
-				print '  Training Time     : {0}'.format(
-					self.timers.get_elapsed_time('train_epoch', True))
+			if verbose: self._print_train(i, nepochs, train_cost)
 			
 			# Compute testing cost
 			self.timers.start_timers('test', 'test_epoch')
@@ -189,34 +246,71 @@ class CostNet(Net):
 			test_cost[i] = cost(_run(test_data), test_labels)
 			self.timers.pause_timers('test')
 			self.timers.stop_timers('test_epoch')
-			if verbose:
-				print '  Testing Cost      : {0}'.format(test_cost[i])
-				print '  Testing Time      : {0}'.format(
-					self.timers.get_elapsed_time('test_epoch', True))
+			if verbose: self._print_test(i, test_cost)
 		
 		self.timers.stop_timers('global')
-		if verbose:
-			print '\n' + '*' * 79
-			print '\nBest Training Cost : {0} at Epoch {1}'.format(np.min(
-				train_cost), np.argmin(train_cost) + 1)
-			print 'Best Testing Cost  : {0} at Epoch {1}'.format(np.min(
-				test_cost), np.argmin(test_cost) + 1)
-			print '\nTotal Execution Time        : {0}'.format(
-				self.timers.get_elapsed_time('global', True))
-			print 'Total Training Time         : {0}'.format(
-				self.timers.get_elapsed_time('train', True))
-			print 'Average Training Epoch Time : {0}'.format(
-				pretty_time(self.timers.get_elapsed_time('train') / nepochs))
-			print 'Total Testing Time          : {0}'.format(
-				self.timers.get_elapsed_time('test', True))
-			print 'Average Testing Epoch Time  : {0}'.format(
-				pretty_time(self.timers.get_elapsed_time('test') / nepochs))
+		if verbose: self._print_final(nepochs, train_cost, test_cost)
 		
 		return (train_cost, test_cost)
 
-class AccuracyNet(Net):
+class UnsupervisedCostNet(SupervisedCostNet):
 	"""
-	Base class description for network that computes an accuracy.
+	Base class description for network that computes a cost function using
+	unsupervised training.
+	"""
+	__metaclass__ = ABCMeta
+	
+	def run(self, train_data, test_data, nepochs=1, verbose=True):
+		"""
+		Simulate the entire network.
+		
+		@param train_data: The data to train with. This must be an iterable
+		returning a numpy array.
+		
+		@param test_data: The data to test with. This must be an iterable
+		returning a numpy array.
+		
+		@param nepochs: The number of training epochs to perform.
+		
+		@param verbose: If True, details will be printed after each epoch.
+		
+		@return: A tuple containing the training and test costs.
+		"""
+		
+		# Make some timers
+		self.timers = MultiTimer()
+		self.timers.add_timers('global', 'train', 'train_epoch', 'test',
+			'test_epoch')
+		self.timers.stop_timers('train', 'train_epoch', 'test', 'test_epoch')
+		
+		_run = self._run; cost = self.cost
+		train_cost = np.zeros(nepochs); test_cost  = np.zeros(nepochs)
+		for i in xrange(nepochs):
+			# Compute training cost
+			self.timers.start_timers('train', 'train_epoch')
+			self.enable_learning()
+			train_cost[i] = cost(_run(train_data), train_data)
+			self.timers.pause_timers('train')
+			self.timers.stop_timers('train_epoch')
+			if verbose: self.print_train(i, nepochs, train_cost)
+			
+			# Compute testing cost
+			self.timers.start_timers('test', 'test_epoch')
+			self.disable_learning()
+			test_cost[i] = cost(_run(test_data), test_data)
+			self.timers.pause_timers('test')
+			self.timers.stop_timers('test_epoch')
+			if verbose: self.print_test(i, test_cost)
+		
+		self.timers.stop_timers('global')
+		if verbose: self.print_final(nepochs, train_cost, test_cost)
+		
+		return (train_cost, test_cost)
+
+class SupervisedAccuracyNet(Net):
+	"""
+	Base class description for network that computes an accuracy using
+	supervised training.
 	"""
 	__metaclass__ = ABCMeta
 	
@@ -232,6 +326,66 @@ class AccuracyNet(Net):
 		
 		@return: The accuracy.
 		"""
+	
+	def _print_train(self, epoch, nepochs, train_accuracy):
+		"""
+		Print the details about training.
+		
+		@param epoch: The current epoch number.
+		
+		@param nepochs: The total number of epochs.
+		
+		@param train_accuracy: A numpy array containing the training accuracy
+		at each epoch.
+		"""
+		
+		print '\nEpoch {0} of {1}:'.format(epoch + 1, nepochs)
+		print '  Training Accuracy : {0}'.format(train_accuracy[epoch])
+		print '  Training Time     : {0}'.format(
+			self.timers.get_elapsed_time('train_epoch', True))
+	
+	def _print_test(self, epoch, test_accuracy):
+		"""
+		Print the details about testing.
+		
+		@param epoch: The current epoch number.
+		
+		@param test_accuracy: A numpy array containing the testing accuracy
+		at each epoch.
+		"""
+		
+		print '  Testing Accuracy  : {0}%'.format(test_accuracy[epoch])
+		print '  Testing Time      : {0}'.format(
+			self.timers.get_elapsed_time('test_epoch', True))
+	
+	def _print_final(self, nepochs, train_accuracy, test_accuracy):
+		"""
+		Print the details final details.
+		
+		@param nepochs: The total number of epochs.
+		
+		@param train_accuracy: A numpy array containing the training accuracy
+		at each epoch.
+		
+		@param test_accuracy: A numpy array containing the testing accuracy
+		at each epoch.
+		"""
+		
+		print '\n' + '*' * 79
+		print '\nBest Training Accuracy : {0}% at Epoch {1}'.format(np.max(
+			train_accuracy) * 100, np.argmax(train_accuracy) + 1)
+		print 'Best Testing Accuracy  : {0}% at Epoch {1}'.format(np.max(
+			test_accuracy) * 100, np.argmax(test_accuracy) + 1)
+		print '\nTotal Execution Time        : {0}'.format(
+			self.timers.get_elapsed_time('global', True))
+		print 'Total Training Time         : {0}'.format(
+			self.timers.get_elapsed_time('train', True))
+		print 'Average Training Epoch Time : {0}'.format(
+			pretty_time(self.timers.get_elapsed_time('train') / nepochs))
+		print 'Total Testing Time          : {0}'.format(
+			self.timers.get_elapsed_time('test', True))
+		print 'Average Testing Epoch Time  : {0}'.format(
+			pretty_time(self.timers.get_elapsed_time('test') / nepochs))
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
 		nepochs=1, verbose=True):
@@ -273,12 +427,7 @@ class AccuracyNet(Net):
 				train_labels)
 			self.timers.pause_timers('train')
 			self.timers.stop_timers('train_epoch')
-			if verbose:
-				print '\nEpoch {0} of {1}:'.format(i + 1, nepochs)
-				print '  Training Accuracy : {0}%'.format(train_accuracy[i] *
-					100)
-				print '  Training Time     : {0}'.format(
-					self.timers.get_elapsed_time('train_epoch', True))
+			if verbose: self._print_train(i, nepochs, train_accuracy)
 			
 			# Compute testing accuracy
 			self.timers.start_timers('test', 'test_epoch')
@@ -286,29 +435,10 @@ class AccuracyNet(Net):
 			test_accuracy[i] = score(_run(test_data), test_labels)
 			self.timers.pause_timers('test')
 			self.timers.stop_timers('test_epoch')
-			if verbose:
-				print '  Testing Accuracy  : {0}%'.format(test_accuracy[i] *
-					100)
-				print '  Testing Time      : {0}'.format(
-					self.timers.get_elapsed_time('test_epoch', True))
+			if verbose: self._print_test(i, test_accuracy)
 		
 		self.timers.stop_timers('global')
-		if verbose:
-			print '\n' + '*' * 79
-			print '\nBest Training Accuracy : {0}% at Epoch {1}'.format(np.max(
-				train_accuracy) * 100, np.argmax(train_accuracy) + 1)
-			print 'Best Testing Accuracy  : {0}% at Epoch {1}'.format(np.max(
-				test_accuracy) * 100, np.argmax(test_accuracy) + 1)
-			print '\nTotal Execution Time        : {0}'.format(
-				self.timers.get_elapsed_time('global', True))
-			print 'Total Training Time         : {0}'.format(
-				self.timers.get_elapsed_time('train', True))
-			print 'Average Training Epoch Time : {0}'.format(
-				pretty_time(self.timers.get_elapsed_time('train') / nepochs))
-			print 'Total Testing Time          : {0}'.format(
-				self.timers.get_elapsed_time('test', True))
-			print 'Average Testing Epoch Time  : {0}'.format(
-				pretty_time(self.timers.get_elapsed_time('test') / nepochs))
+		if verbose: self._print_final(nepochs, train_accuracy, test_accuracy)
 		
 		return (train_accuracy, test_accuracy)
 
@@ -316,7 +446,7 @@ class AccuracyNet(Net):
 ########## Class Implementation
 ###############################################################################
 
-class LinearRegressionNetwork(CostNet):
+class LinearRegressionNetwork(SupervisedCostNet):
 	"""
 	Base class for a liner regression network.
 	"""
@@ -409,7 +539,7 @@ class LinearRegressionNetwork(CostNet):
 		
 		return y_est
 
-class MultilayerPerception(AccuracyNet):
+class MultilayerPerception(SupervisedAccuracyNet):
 	"""
 	Base class for a multilayer perception.
 	"""
@@ -629,7 +759,7 @@ class ExtremeLearningMachine(MultilayerPerception):
 		# Return the outputs from the output layer
 		return self.outputs[-1]
 
-class CompetitiveLearning(CostNet):
+class CompetitiveLearning(UnsupervisedCostNet):
 	"""
 	Base class for a competitive learning network (clustering).
 	"""
@@ -673,26 +803,28 @@ class CompetitiveLearning(CostNet):
 		
 		self.weights = np.random.uniform(min_weight, max_weight, shape)
 	
-	def cost(self, y, y_exp):
+	def cost(self, y, x):
 		"""
 		Compute the cost function
 		
 		@param y: The true output.
 		
-		@param y_exp: The expected output.
+		@param x: The input.
 		
 		@return: The cost.
 		"""
 		
-		return None
+		cost = 0.
+		for pattern in x:
+			for weights in self.weights:
+				cost += y * np.dot(weights - pattern)
+		return cost / 2
 	
-	def step(self, x, y=None):
+	def step(self, x):
 		"""
 		Compute a single step of the network.
 		
 		@param x: The input data to compute for this step.
-		
-		@param y: The expected output.
 		"""
 		
 		pass

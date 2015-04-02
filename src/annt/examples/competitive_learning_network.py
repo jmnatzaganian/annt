@@ -22,25 +22,19 @@ G{packagetree annt}
 __docformat__ = 'epytext'
 
 # Program imports
-from annt.util import one_hot, mnist_data
+from annt.util import mnist_data
 from annt.net  import CompetitiveLearning
 from annt.plot import basic_epoch
 
-def main(train_data, train_labels, test_data, test_labels, nepochs=1):
+def main(train_data, test_data, nepochs=1):
 	"""
 	Demonstrates a competitive learning network using MNIST.
 	
 	@param train_data: The data to train with. This must be an iterable
 	returning a numpy array.
 	
-	@param train_labels: The training labels. This must be an iterable with the
-	same length as train_data.
-	
 	@param test_data: The data to test with. This must be an iterable returning
 	a numpy array.
-	
-	@param test_labels: The testing labels. This must be an iterable with the
-	same length as train_data.
 	
 	@param nepochs: The number of training epochs to perform.
 	"""
@@ -55,8 +49,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	)
 	
 	# Simulate the network
-	train_cost, test_cost = net.run(train_data, train_labels, test_data,
-		test_labels, nepochs, True)
+	train_cost, test_cost = net.run(train_data, test_data, nepochs, True)
 	
 	# Plot the results
 	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',
@@ -67,7 +60,5 @@ if __name__ == '__main__':
 	(train_data, train_labels), (test_data, test_labels) = mnist_data()
 	
 	# Scale pixel values to be between 0 and 1
-	# Convert labeled data to one-hot encoding
 	# Run the network
-	main(train_data/255., one_hot(train_labels, 10), test_data/255.,
-		one_hot(test_labels, 10), nepochs=100)
+	main(train_data/255., test_data/255., nepochs=100)
