@@ -21,9 +21,6 @@ G{packagetree annt}
 
 __docformat__ = 'epytext'
 
-# Third party imports
-import numpy as np
-
 # Program imports
 from annt.util import mnist_data
 from annt.net  import LinearRegressionNetwork
@@ -61,12 +58,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	
 	# Simulate the network
 	train_cost, test_cost = net.run(train_data, train_labels, test_data,
-		test_labels, nepochs)
-	
-	print '\nBest Training Cost:\n{0} at Epoch {1}'.format(np.min(train_cost),
-		np.argmin(train_cost))
-	print '\nBest Testing Cost:\n{0} at Epoch {1}'.format(np.min(test_cost),
-		np.argmin(test_cost))
+		test_labels, nepochs, True)
 	
 	# Plot the results
 	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',

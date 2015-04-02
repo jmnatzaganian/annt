@@ -21,9 +21,6 @@ G{packagetree annt}
 
 __docformat__ = 'epytext'
 
-# Third party imports
-import numpy as np
-
 # Program imports
 from annt.util import one_hot, mnist_data
 from annt.net  import ExtremeLearningMachine
@@ -60,12 +57,7 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	
 	# Simulate the network
 	train_accuracy, test_accuracy = net.run(train_data, train_labels,
-		test_data, test_labels, nepochs)
-	
-	print '\nBest Training Accuracy:\n{0}% at Epoch {1}'.format(np.max(
-		train_accuracy) * 100, np.argmax(train_accuracy))
-	print '\nBest Testing Accuracy:\n{0}% at Epoch {1}'.format(np.max(
-		test_accuracy) * 100, np.argmax(test_accuracy))
+		test_data, test_labels, nepochs, True)
 	
 	# Plot the results
 	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),

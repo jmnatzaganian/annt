@@ -26,6 +26,7 @@ import numpy as np
 
 # Program imports
 from annt.activation import create_activation
+from annt.timers     import MultiTimer, pretty_time
 
 ###############################################################################
 ########## Class Template
@@ -209,7 +210,7 @@ class LinearRegressionNetwork(Net):
 		return y_est
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
-		nepochs=1):
+		nepochs=1, verbose=True):
 		"""
 		Simulate the entire network.
 		
@@ -227,19 +228,60 @@ class LinearRegressionNetwork(Net):
 		
 		@param nepochs: The number of training epochs to perform.
 		
+		@param verbose: If True, details will be printed after each epoch.
+		
 		@return: A tuple containing the training and test costs.
 		"""
+		
+		# Make some timers
+		self.timers = MultiTimer()
+		self.timers.add_timers('global', 'train', 'train_epoch', 'test',
+			'test_epoch')
+		self.timers.stop_timers('train', 'train_epoch', 'test', 'test_epoch')
 		
 		_run = self._run; cost = self.cost
 		train_cost = np.zeros(nepochs); test_cost  = np.zeros(nepochs)
 		for i in xrange(nepochs):
 			# Compute training cost
+			self.timers.start_timers('train', 'train_epoch')
 			self.enable_learning()
 			train_cost[i] = cost(_run(train_data, train_labels), train_labels)
+			self.timers.pause_timers('train')
+			self.timers.stop_timers('train_epoch')
+			if verbose:
+				print '\nEpoch {0} of {1}:'.format(i, nepochs)
+				print '  Training Cost     : {0}'.format(train_cost[i])
+				print '  Training Time     : {0}'.format(
+					self.timers.get_elapsed_time('train_epoch', True))
 			
 			# Compute testing cost
+			self.timers.start_timers('test', 'test_epoch')
 			self.disable_learning()
 			test_cost[i] = cost(_run(test_data), test_labels)
+			self.timers.pause_timers('test')
+			self.timers.stop_timers('test_epoch')
+			if verbose:
+				print '  Testing Cost      : {0}'.format(test_cost[i])
+				print '  Testing Time      : {0}'.format(
+					self.timers.get_elapsed_time('test_epoch', True))
+		
+		self.timers.stop_timers('global')
+		if verbose:
+			print '\n' + '*' * 79
+			print '\nBest Training Cost : {0} at Epoch {1}'.format(np.min(
+				train_cost), np.argmin(train_cost))
+			print 'Best Testing Cost  : {0} at Epoch {1}'.format(np.min(
+				test_cost), np.argmin(test_cost))
+			print '\nTotal Execution Time        : {0}'.format(
+				self.timers.get_elapsed_time('global', True))
+			print 'Total Training Time         : {0}'.format(
+				self.timers.get_elapsed_time('train', True))
+			print 'Average Training Epoch Time : {0}'.format(
+				pretty_time(self.timers.get_elapsed_time('train') / nepochs))
+			print 'Total Testing Time          : {0}'.format(
+				self.timers.get_elapsed_time('test', True))
+			print 'Average Testing Epoch Time  : {0}'.format(
+				pretty_time(self.timers.get_elapsed_time('test') / nepochs))
 		
 		return (train_cost, test_cost)
 
@@ -386,7 +428,7 @@ class MultilayerPerception(Net):
 		return self.outputs[-1]
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
-		nepochs=1):
+		nepochs=1, verbose=True):
 		"""
 		Simulate the entire network.
 		
@@ -404,20 +446,63 @@ class MultilayerPerception(Net):
 		
 		@param nepochs: The number of training epochs to perform.
 		
+		@param verbose: If True, details will be printed after each epoch.
+		
 		@return: A tuple containing the training and test accuracies.
 		"""
+		
+		# Make some timers
+		self.timers = MultiTimer()
+		self.timers.add_timers('global', 'train', 'train_epoch', 'test',
+			'test_epoch')
+		self.timers.stop_timers('train', 'train_epoch', 'test', 'test_epoch')
 		
 		_run = self._run; score = self.score
 		train_accuracy = np.zeros(nepochs); test_accuracy  = np.zeros(nepochs)
 		for i in xrange(nepochs):
 			# Compute training accuracy
+			self.timers.start_timers('train', 'train_epoch')
 			self.enable_learning()
 			train_accuracy[i] = score(_run(train_data, train_labels),
 				train_labels)
+			self.timers.pause_timers('train')
+			self.timers.stop_timers('train_epoch')
+			if verbose:
+				print '\nEpoch {0} of {1}:'.format(i, nepochs)
+				print '  Training Accuracy : {0}%'.format(train_accuracy[i] *
+					100)
+				print '  Training Time     : {0}'.format(
+					self.timers.get_elapsed_time('train_epoch', True))
 			
 			# Compute testing accuracy
+			self.timers.start_timers('test', 'test_epoch')
 			self.disable_learning()
 			test_accuracy[i] = score(_run(test_data), test_labels)
+			self.timers.pause_timers('test')
+			self.timers.stop_timers('test_epoch')
+			if verbose:
+				print '  Testing Accuracy  : {0}%'.format(test_accuracy[i] *
+					100)
+				print '  Testing Time      : {0}'.format(
+					self.timers.get_elapsed_time('test_epoch', True))
+		
+		self.timers.stop_timers('global')
+		if verbose:
+			print '\n' + '*' * 79
+			print '\nBest Training Accuracy : {0}% at Epoch {1}'.format(np.max(
+				train_accuracy) * 100, np.argmax(train_accuracy))
+			print 'Best Testing Accuracy  : {0}% at Epoch {1}'.format(np.max(
+				test_accuracy) * 100, np.argmax(test_accuracy))
+			print '\nTotal Execution Time        : {0}'.format(
+				self.timers.get_elapsed_time('global', True))
+			print 'Total Training Time         : {0}'.format(
+				self.timers.get_elapsed_time('train', True))
+			print 'Average Training Epoch Time : {0}'.format(
+				pretty_time(self.timers.get_elapsed_time('train') / nepochs))
+			print 'Total Testing Time          : {0}'.format(
+				self.timers.get_elapsed_time('test', True))
+			print 'Average Testing Epoch Time  : {0}'.format(
+				pretty_time(self.timers.get_elapsed_time('test') / nepochs))
 		
 		return (train_accuracy, test_accuracy)
 
