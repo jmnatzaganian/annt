@@ -87,11 +87,14 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	train_accuracy, test_accuracy = net.run(train_data, train_labels,
 		test_data, test_labels, nepochs)
 	
-	print train_accuracy, test_accuracy
+	print '\nBest Training Accuracy:\n{0}% at Epoch {1}'.format(np.max(
+		train_accuracy) * 100, np.argmax(train_accuracy))
+	print '\nBest Testing Accuracy:\n{0}% at Epoch {1}'.format(np.max(
+		test_accuracy) * 100, np.argmax(test_accuracy))
 	
 	# Plot the results
 	basic_epoch((train_accuracy, test_accuracy), ('Train', 'Test'),
-		'Accuracy [%]', 'MLP - Example')
+		'Accuracy [%]', 'MLP - Example', legend_location='upper left')
 
 if __name__ == '__main__':
 	# Get the data and map the pixels to floats

@@ -17,7 +17,7 @@ import shutil
 # Install the program
 setup(
 	name='annt',
-	version='0.2.0',
+	version='0.3.0',
 	description="Artificial Neural Network Toolbox",
 	author='James Mnatzaganian',
 	author_email='jamesmnatzaganian@outlook.com',

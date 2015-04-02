@@ -71,11 +71,11 @@ Developer Notes
 		From the root level, execute X{python epydoc --config=epydoc_config.txt
 		annt}
 
-@group Computer Vision Datasets: vision
+@group Examples: examples
 
 @author: U{James Mnatzaganian<http://techtorials.me>}
 @requires: Python 2.7.X
-@version: 0.1.0
+@version: 0.3.0
 @license: U{The MIT License<http://opensource.org/licenses/mit-license.php>}
 @copyright: S{copy} 2015 James Mnatzaganian
 """

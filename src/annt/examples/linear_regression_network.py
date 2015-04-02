@@ -28,6 +28,9 @@ __docformat__ = 'epytext'
 # Native imports
 import cPickle, pkgutil, os
 
+# Third party imports
+import numpy as np
+
 # Program imports
 from annt.net  import LinearRegressionNetwork
 from annt.plot import basic_epoch
@@ -66,9 +69,14 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1):
 	train_cost, test_cost = net.run(train_data, train_labels, test_data,
 		test_labels, nepochs)
 	
+	print '\nBest Training Cost:\n{0} at Epoch {1}'.format(np.min(train_cost),
+		np.argmin(train_cost))
+	print '\nBest Testing Cost:\n{0} at Epoch {1}'.format(np.min(test_cost),
+		np.argmin(test_cost))
+	
 	# Plot the results
 	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',
-		'Linear Regression Network - Example')
+		'Linear Regression Network - Example', semilog=True)
 
 if __name__ == '__main__':
 	# Get the data and map the pixels to floats

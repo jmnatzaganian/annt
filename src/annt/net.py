@@ -110,9 +110,8 @@ class Net(object):
 			# Input weights aren't trained, so set them to 1, everything else
 			# is set to be random. Last dimension is incremented by 1 to allow
 			# for the bias.
-			self.weights = np.array([np.ones(shape[0])] + [np.random.uniform(
-				min_weight, max_weight, (c, p + 1)) for c, p in zip(shape[1:],
-				shape[:-1])])
+			self.weights = np.array([np.random.uniform(min_weight, max_weight,
+				(c, p + 1)) for c, p in zip(shape[1:], shape[:-1])])
 	
 	def enable_learning(self):
 		"""
@@ -151,10 +150,11 @@ class LinearRegressionNetwork(Net):
 		
 		@param max_weight: The maximum weight value.
 		
-		@activation_type: The type activation function to use. This must be one
-		of the classes implemented in L{annt.activation}.
+		@param activation_type: The type activation function to use. This must
+		be one of the classes implemented in L{annt.activation}.
 		
-		@activation_kargs: Any keyword arguments for the activation function.
+		@param activation_kargs: Any keyword arguments for the activation
+		function.
 		
 		@param learning: Boolean denoting if the network is currently learning.
 		"""
@@ -200,7 +200,7 @@ class LinearRegressionNetwork(Net):
 		full_x = np.concatenate((self.bias, x))
 		
 		# Calculate the outputs
-		y_est = np.sum(self.activation.compute(full_x *	self.weights))
+		y_est = self.activation.compute(np.dot(full_x, self.weights))
 		
 		# Update the error using online learning
 		if self.learning:
@@ -330,47 +330,60 @@ class MultilayerPerception(Net):
 		@param y: The expected output.
 		"""
 		
-		# Calculate the outputs for the input layer
-		full_x          = np.concatenate((self.bias, x))
-		self.outputs[0] = self.input_activation.compute(full_x)
+		#######################################################################
+		######## Calculate the outputs using forward propagation
+		#######################################################################
 		
-		# Calculate all other outputs
-		for layer, layer_weights in enumerate(self.weights[1:], 1):
-			# Loop layers
-			for i, weights in enumerate(layer_weights):
-				# Loop nodes in layer
-				self.outputs[layer][i] = self.hidden_activation.compute(np.sum(
-						self.outputs[layer - 1] * weights))
+		# Calculate the outputs for the input layer
+		self.outputs[0][0]  = self.input_activation.compute(self.bias)
+		self.outputs[0][1:] = self.input_activation.compute(x)
+		
+		# Calculate the outputs for the hidden layer(s)
+		#   - First hidden layer -> last hidden layer
+		for layer, layer_weights in enumerate(self.weights[:-1], 1):
+			self.outputs[layer][0]  = self.hidden_activation.compute(self.bias)
+			self.outputs[layer][1:] = self.hidden_activation.compute(np.inner(
+				self.outputs[layer - 1], layer_weights))
+		
+		# Calculate the outputs for the output layer
+		self.outputs[-1] = self.hidden_activation.compute(np.inner(
+				self.outputs[-2], self.weights[-1]))
+		
+		#######################################################################
+		######## Train the network using backpropagation
+		#######################################################################
 		
 		if self.learning:
+			
+			###################################################################
+			######## Calculate the deltas
+			###################################################################
+		
 			# Calculate output deltas
 			self.deltas[-1] = self.outputs[-1] - y
 			
 			# Calculate hidden deltas
+			#   - Last hidden layer -> first hidden layer
+			# Note that deltas are not computed for the bias
 			for layer in xrange(-2, -self.deltas.shape[0], -1):
-				# Loop layers in reverse
-				
-				# Calculate dot product
-				dot = np.zeros(self.weights[layer + 1].shape[1] - 1)
-				for i, weights in enumerate(self.weights[layer + 1].T[1:,]):
-					dot[i] = np.dot(self.deltas[layer + 1], weights)
-				
-				# Calculate deltas
 				self.deltas[layer] = self.hidden_activation.compute_derivative(
-					self.outputs[layer][1:,]) * dot
+					self.outputs[layer][1:,]) * np.inner(self.deltas[layer +
+					1], self.weights[layer + 1].T[1:,])
+			
+			###################################################################
+			######## Update the weights
+			###################################################################
 			
 			# Update the weights
+			#   - Output -> first hidden layer
+			#     - Bias's weight -> last node's weight
 			for layer in xrange(-1, -self.deltas.shape[0], -1):
-				# Loop layers in reverse
 				for i, weights in enumerate(self.weights[layer]):
-					# Loop nodes in layer
 					self.weights[layer][i] += -self.learning_rate *           \
 						self.deltas[layer][i] * self.outputs[layer - 1]
-			
-			# import pdb; pdb.set_trace()
-			# import sys; sys.exit()
-			
-			return self.outputs[-1]
+		
+		# Return the outputs from the output layer
+		return self.outputs[-1]
 	
 	def run(self, train_data, train_labels, test_data, test_labels,
 		nepochs=1):

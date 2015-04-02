@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 from   matplotlib.ticker import MultipleLocator
 
 def basic_epoch(y_series, series_names=None, y_label=None, title=None,
-	out_path=None, show=True):
+	semilog=False, legend_location='best', out_path=None, show=True):
 	"""
 	Basic plotter function for plotting various types of data against
 	training epochs. Each item in the series should correspond to a single
@@ -45,6 +45,12 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	
 	@param title: The name of the plot.
 	
+	@param semilog: If True the y-axis will be plotted using a log(10) scale.
+	
+	@param legend_location: The location of where the legend should be placed.
+	Refer to matplotlib's U{docs<http://matplotlib.org/api/pyplot_api.html#
+	matplotlib.pyplot.legend>} for more details.
+	
 	@param out_path: The full path to where the image should be saved. The file
 	extension of this path will be used as the format type. If this value is
 	None then the plot will not be saved, but displayed only.
@@ -57,7 +63,7 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	if title is not None   : plt.title(title)
 	ax.set_xlabel('Epoch')
 	plt.xlim((1, max([x.shape[0] for x in y_series])))
-	ax.set_yscale('log')
+	if semilog: ax.set_yscale('log')
 	if y_label is not None : ax.set_ylabel(y_label)
 	colormap = plt.cm.brg
 	colors   = itertools.cycle([colormap(i) for i in np.linspace(0, 0.9,
@@ -73,7 +79,7 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 		ax.scatter(x, y, color=colors.next(), marker=markers.next())
 	
 	# Create the legend
-	if series_names is not None: plt.legend(series_names)
+	if series_names is not None: plt.legend(series_names, loc=legend_location)
 	
 	# Save the plot
 	if out_path is not None:
