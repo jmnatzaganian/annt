@@ -24,7 +24,7 @@ __docformat__ = 'epytext'
 # Program imports
 from annt.util import mnist_data
 from annt.net  import CompetitiveLearning
-from annt.plot import basic_epoch
+from annt.plot import basic_epoch, plot_weights
 
 def main(train_data, test_data, nepochs=1):
 	"""
@@ -41,11 +41,15 @@ def main(train_data, test_data, nepochs=1):
 	
 	# Create the network
 	net =  CompetitiveLearning(
-		ninputs       = 784,
-		nclusters     = 10,
-		learning_rate = 0.001,
-		min_weight    = -1,
-		max_weight    = 1
+		ninputs        = 784,
+		nclusters      = 10,
+		learning_rate  = 0.001,
+		boost_inc      = 0.1,
+		boost_dec      = 0.01,
+		duty_cycle     = 50,
+		min_duty_cycle = 5,
+		min_weight     = -1,
+		max_weight     = 1
 	)
 	
 	# Simulate the network
@@ -54,6 +58,9 @@ def main(train_data, test_data, nepochs=1):
 	# Plot the results
 	basic_epoch((train_cost, test_cost), ('Train', 'Test'), 'Cost',
 		'Clustering - Example', semilog=True)
+	
+	# Plot clusters
+	plot_weights(net.weights.T, 2, 5, (28, 28), 'Clustering Weights - Example')
 
 if __name__ == '__main__':
 	# Get the data
@@ -61,4 +68,4 @@ if __name__ == '__main__':
 	
 	# Scale pixel values to be between 0 and 1
 	# Run the network
-	main(train_data/255., test_data/255., nepochs=100)
+	main(train_data/255., test_data/255., nepochs=50)

@@ -19,12 +19,11 @@ G{packagetree annt}
 __docformat__ = 'epytext'
 
 # Native imports
-import os, itertools
+import itertools
 
 # Third-Party imports
 import numpy             as np
 import matplotlib.pyplot as plt
-from   matplotlib.ticker import MultipleLocator
 
 def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	semilog=False, legend_location='best', out_path=None, show=True):
@@ -76,6 +75,55 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	
 	# Create the legend
 	if series_names is not None: plt.legend(series_names, loc=legend_location)
+	
+	# Save the plot
+	if out_path is not None:
+		plt.savefig(out_path, format=out_path.split('.')[-1])
+	
+	# Show the plot and close it after the user is done
+	if show is not None: plt.show()
+	plt.close()
+
+def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
+	show=True):
+	"""
+	Plot the weight matrices for the network.
+	
+	@param weights: A numpy array containing a weight matrix. Each row in the
+	array corresponds to a unique node. Each column corresponds to a weight
+	value.
+	
+	@param nrows: The number of rows of plots to create.
+	
+	@param ncols: The number of columns of plots to create.
+	
+	@param shape: The shape of the weights. It is assumed that a 1D shape was
+	used and is desired to be represented in 2D. Whatever shape is provided
+	will be used to reshape the weights. For example, if you had a 28x28 image
+	and each weight corresponded to one pixel, you would have a vector with a
+	shape of (784, ). This vector would then need to be resized to your desired
+	shape of (28, 28).
+	
+	@param title: The name of the plot.
+	
+	@param out_path: The full path to where the image should be saved. The file
+	extension of this path will be used as the format type. If this value is
+	None then the plot will not be saved, but displayed only.
+	
+	@param show: If True the plot will be show upon creation.
+	"""
+	
+	# Construct the basic plot
+	fig = plt.figure()
+	if title is not None: fig.suptitle(title, fontsize=16)
+	
+	# Add all of the figures to the grid
+	for i, weight_set in enumerate(weights):
+		ax = plt.subplot(nrows, ncols, i + 1)
+		ax.set_title('Node {0}'.format(i))
+		ax.imshow(weight_set.reshape(shape), cmap=plt.cm.gray)
+		ax.axes.get_xaxis().set_visible(False)
+		ax.axes.get_yaxis().set_visible(False)
 	
 	# Save the plot
 	if out_path is not None:

@@ -764,7 +764,8 @@ class CompetitiveLearning(UnsupervisedCostNet):
 	Base class for a competitive learning network (clustering).
 	"""
 	
-	def __init__(self, ninputs, nclusters, learning_rate=0.001, min_weight=-1,
+	def __init__(self, ninputs, nclusters, learning_rate=0.001, boost_inc=0.1,
+		boost_dec=0.01, duty_cycle=50, min_duty_cycle=5, min_weight=-1,
 		max_weight=1, learning=True):
 		"""
 		Initializes this competitive learning network.
@@ -775,6 +776,18 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		
 		@param learning_rate: The learning rate to use.
 		
+		@param boost_inc: The amount to increment the boost by.
+		
+		@param boost_dec: The amount to decrement the boost by.
+		
+		@param duty_cycle: The history to retain for activations for each node.
+		This is the period minimum activation is compared across. It is a
+		rolling window.
+		
+		@param min_duty_cycle: The minimum duty cycle. If a node has not been
+		active at least this many times, increment its boost value, else
+		decrement it.
+		
 		@param min_weight: The minimum weight value.
 		
 		@param max_weight: The maximum weight value.
@@ -783,14 +796,37 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		"""
 		
 		# Store the params
-		self.learning_rate = learning_rate
-		self.learning      = learning
+		self.learning_rate  = learning_rate
+		self.boost_inc      = boost_inc
+		self.boost_dec      = boost_dec
+		self.duty_cycle     = duty_cycle
+		self.min_duty_cycle = min_duty_cycle
+		self.learning       = learning
 		
 		# Construct the weights
 		self.initialize_weights((ninputs, nclusters), min_weight, max_weight)
 		
 		# Construct the boost values
 		self.boost = np.ones(nclusters)
+		
+		# Construct the outputs
+		#   - Each item represents a single cluster.
+		#   - Each cluster maintains a history of length two of its update.
+		#      - The first item refers to the current iteration.
+		#      - The second item refers to the previous iteration.
+		#      - The last item refers to the furthest iteration.
+		self.outputs = np.ones((nclusters, duty_cycle))
+	
+	def _update_boost(self):
+		"""
+		Update the boost values.
+		"""
+		
+		for i, active in enumerate(self.outputs):
+			if int(np.sum(active)) >= self.min_duty_cycle:
+				self.boost[i] += self.boost_inc
+			else:
+				self.boost[i] = max(self.boost[i] - self.boost_dec, 0)
 	
 	def initialize_weights(self, shape, min_weight=-1, max_weight=1):
 		"""
@@ -830,19 +866,23 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		@param x: The input data to compute for this step.
 		"""
 		
-		# Calculate the outputs
-		y = np.zeros(self.weights.shape[1])
-		for i, weights in enumerate(self.weights.T):
-			y[i] = self.boost[i] * np.sum((weights - x) ** 2)
-		min_ix    = np.argmin(y)
-		y[:]      = 0
-		y[min_ix] = 1
+		# Shit outputs
+		self.outputs = np.roll(self.outputs, 1, 1)
 		
-		# Increment boost, decrement boosts (not below 1)
+		# Calculate the outputs
+		for i, weights in enumerate(self.weights.T):
+			self.outputs[i][0] = self.boost[i] * np.sum((weights - x) ** 2)
+		min_ix                  = np.argmin(self.outputs.T[0])
+		self.outputs.T[0]       = 0
+		self.outputs[min_ix][0] = 1
+		
+		# Update the boosts
+		self._update_boost()
 		
 		# Train the network
 		if self.learning:
 			for i, weights in enumerate(self.weights.T):
-				self.weights.T[i] += self.learning_rate * y[i] * (x - weights)
+				self.weights.T[i] += self.learning_rate * self.outputs[i][0]  \
+					* (x - weights)
 		
-		return y
+		return self.outputs.T[0]
