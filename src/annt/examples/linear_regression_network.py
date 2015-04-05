@@ -109,7 +109,7 @@ def basic_sim(nepochs=100):
 	# Scale label values to be between 0 and 1
 	# Run the network
 	main(train_data/255., train_labels/9., test_data/255., test_labels/9.,
-		nepochs=100)
+		nepochs=nepochs)
 
 def bulk(niters, nepochs, verbose=True, plot=True, **kargs):
 	"""
@@ -179,6 +179,8 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	
 	# Get the data
 	(train_data, train_labels), (test_data, test_labels) = mnist_data()
+	train_d = train_data/255.; train_l = train_labels/9.
+	test_d  = test_data/255.;  test_l  = test_labels/9.
 	
 	# Make the output directory
 	try:
@@ -201,10 +203,9 @@ def vary_params(out_dir, nepochs=100, niters=10):
 		print 'Executing iteration {0} of {1}'.format(i + 1,
 			learning_rates.shape[0])
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
-			bulk(train_data=train_data/255., train_labels=train_labels/9.,
-			test_data=test_data/255., test_labels=test_labels/9., plot=False,
-			nepochs=nepochs, niters=niters, learning_rate=learning_rate,
-			verbose=False)
+			bulk(train_data=train_d, train_labels=train_l, test_data=test_d,
+			test_labels=test_l, plot=False, nepochs=nepochs, niters=niters,
+			learning_rate=learning_rate, verbose=False)
 	
 	# Make training plot
 	title    = 'Linear Regression Network - Training\n10 Iterations, '        \
@@ -226,19 +227,18 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	
 	print '\nVarying the slope of the linear function'
 	slopes         = np.linspace(1, 10, 10)
-	train_results  = np.zeros((learning_rates.shape[0], nepochs))
-	train_stds     = np.zeros((learning_rates.shape[0], nepochs))
-	test_results   = np.zeros((learning_rates.shape[0], nepochs))
-	test_stds      = np.zeros((learning_rates.shape[0], nepochs))
+	train_results  = np.zeros((slopes.shape[0], nepochs))
+	train_stds     = np.zeros((slopes.shape[0], nepochs))
+	test_results   = np.zeros((slopes.shape[0], nepochs))
+	test_stds      = np.zeros((slopes.shape[0], nepochs))
 	series_names   = ['Slope = {0}'.format(x) for x in slopes]
 	for i, slope in enumerate(slopes):
 		print 'Executing iteration {0} of {1}'.format(i + 1,
 			slopes.shape[0])
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
-			bulk(train_data=train_data/255., train_labels=train_labels/9.,
-			test_data=test_data/255., test_labels=test_labels/9., plot=False,
-			nepochs=nepochs, niters=niters, activation_kargs={'m':slope},
-			verbose=False)
+			bulk(train_data=train_d, train_labels=train_l, test_data=test_d,
+			test_labels=test_l, plot=False, nepochs=nepochs, niters=niters,
+			activation_kargs={'m':slope}, verbose=False)
 	
 	# Make training plot
 	title    = 'Linear Regression Network - Training\n10 Iterations, '        \
@@ -255,6 +255,6 @@ def vary_params(out_dir, nepochs=100, niters=10):
 		y_errs=train_stds, y_label='Cost', title=title, out_path=out_path)
 
 if __name__ == '__main__':
-	# basic_sim()
+	basic_sim()
 	# bulk_sim()
-	vary_params(out_dir=r'D:\annt\test')
+	# vary_params(out_dir=r'D:\annt\test\Linear_Regression_Network')

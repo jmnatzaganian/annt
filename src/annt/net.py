@@ -634,7 +634,10 @@ class MultilayerPerception(SupervisedAccuracyNet):
 		for predicted, expected in zip(y, y_exp):
 			indexes = np.where(predicted == np.max(predicted))[0]
 			np.random.shuffle(indexes)
-			accuracy += 1 if expected[indexes[0]] == 1 else 0
+			try:
+				accuracy += 1 if expected[indexes[0]] == 1 else 0
+			except:
+				import pdb; pdb.set_trace()
 		return accuracy / y_exp.shape[0]
 	
 	def step(self, x, y=None):
