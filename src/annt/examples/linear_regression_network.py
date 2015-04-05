@@ -70,6 +70,8 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1,
 	
 	@param activation_kargs: Any keyword arguments for the activation
 	function.
+	
+	@return: A tuple containing the training and testing results, respectively.
 	"""
 	
 	# Create the network

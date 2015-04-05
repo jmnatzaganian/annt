@@ -22,9 +22,9 @@ __docformat__ = 'epytext'
 import itertools
 
 # Third-Party imports
-import numpy              as np
-import matplotlib.pyplot  as plt
-from mpl_toolkits.mplot3d import Axes3D
+import numpy               as np
+import matplotlib.pyplot   as plt
+from  mpl_toolkits.mplot3d import Axes3D
 
 def plot_epoch(y_series, series_names=None, y_errs=None, y_label=None,
 	title=None, semilog=False, legend_location='best', out_path=None,
@@ -97,8 +97,8 @@ def plot_epoch(y_series, series_names=None, y_errs=None, y_label=None,
 	if show: plt.show()
 	plt.close()
 
-def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
-	show=True):
+def plot_weights(weights, nrows, ncols, shape, title=None, cluster_titles=None,
+	out_path=None, show=True):
 	"""
 	Plot the weight matrices for the network.
 	
@@ -119,6 +119,8 @@ def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
 	
 	@param title: The name of the plot.
 	
+	@pram cluster_titles: The titles for each of the clusters.
+	
 	@param out_path: The full path to where the image should be saved. The file
 	extension of this path will be used as the format type. If this value is
 	None then the plot will not be saved, but displayed only.
@@ -129,11 +131,13 @@ def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
 	# Construct the basic plot
 	fig = plt.figure()
 	if title is not None: fig.suptitle(title, fontsize=16)
+	if cluster_titles is None:
+		cluster_titles = ['Node {0}'.format(i) for i in xrange(len(weights))]
 	
 	# Add all of the figures to the grid
 	for i, weight_set in enumerate(weights):
 		ax = plt.subplot(nrows, ncols, i + 1)
-		ax.set_title('Node {0}'.format(i))
+		ax.set_title(cluster_titles[i])
 		ax.imshow(weight_set.reshape(shape), cmap=plt.cm.gray)
 		ax.axes.get_xaxis().set_visible(False)
 		ax.axes.get_yaxis().set_visible(False)
@@ -144,8 +148,27 @@ def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
 		plt.savefig(out_path, format=out_path.split('.')[-1], dpi = 100)
 	
 	# Show the plot and close it after the user is done
-	if show is not None: plt.show()
+	if show: plt.show()
 	plt.close()
+
+def make_grid(data):
+	"""
+	Convert the properly spaced, but unorganized data into a proper 3D grid.
+	
+	@param data: A sequence containing of data of the form (x, y, z). x and y
+	are independent variables and z is the dependent variable.
+	
+	@return: A tuple containing the new x, y, and z data.
+	"""
+	
+	# Sort the data
+	x, y, z  = np.array(sorted(data, key=lambda x: (x[0], x[1]))).T
+	xi       = np.array(sorted(list(set(x))))
+	yi       = np.array(sorted(list(set(y))))
+	xim, yim = np.meshgrid(xi, yi)
+	zi       = z.reshape(xim.shape)
+	
+	return (xim, yim, zi)
 
 def plot_surface(x, y, z, x_label=None, y_label=None, z_label=None,
 	title=None, out_path=None, show=True):

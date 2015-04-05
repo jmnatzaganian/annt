@@ -74,6 +74,8 @@ def main(train_data, train_labels, test_data, test_labels, nepochs=1,
 	@param hidden_activation_type: The type activation function to use for the
 	hidden neurons. This must be one of the classes implemented in
 	L{annt.activation}.
+	
+	@return: A tuple containing the training and testing results, respectively.
 	"""
 	
 	# Create the network
@@ -171,7 +173,7 @@ def bulk_sim(nepochs=100, niters=10):
 		test_data=test_data/255., test_labels=one_hot(test_labels, 10),
 		nepochs=nepochs, niters=niters)
 
-def vary_params(out_dir, nepochs=100, niters=10):
+def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 	"""
 	Vary some parameters and generate some plots.
 	
@@ -180,6 +182,8 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	@param nepochs: The number of training epochs to perform.
 	
 	@param niters: The number of iterations to run for statistical purposes.
+	
+	@param show_plot: If True the plot will be displayed upon creation.
 	"""
 	
 	# Get the data
@@ -216,14 +220,14 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	out_path = os.path.join(out_dir, 'single-train.png')
 	plot_epoch(y_series=train_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 	
 	# Make testing plot
-	title    = 'MLP - Training\n10 Iterations, Single Hidden Layer'
+	title    = 'MLP - Testing\n10 Iterations, Single Hidden Layer'
 	out_path = os.path.join(out_dir, 'single-test.png')
-	plot_epoch(y_series=train_results, series_names=series_names, title=title,
+	plot_epoch(y_series=test_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 	
 	###########################################################################
 	###### Vary number of nodes for two layers (only second layer varied)
@@ -248,14 +252,14 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	out_path = os.path.join(out_dir, 'double-train.png')
 	plot_epoch(y_series=train_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 	
 	# Make testing plot
-	title    = 'MLP - Training\n10 Iterations, Double Hidden Layer'
+	title    = 'MLP - Testing\n10 Iterations, Double Hidden Layer'
 	out_path = os.path.join(out_dir, 'double-test.png')
-	plot_epoch(y_series=train_results, series_names=series_names, title=title,
+	plot_epoch(y_series=test_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 	
 	###########################################################################
 	###### Vary number of nodes for three layers (only third layer varied)
@@ -280,16 +284,16 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	out_path = os.path.join(out_dir, 'triple-train.png')
 	plot_epoch(y_series=train_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 	
 	# Make testing plot
-	title    = 'MLP - Training\n10 Iterations, Triple Hidden Layer'
+	title    = 'MLP - Testing\n10 Iterations, Triple Hidden Layer'
 	out_path = os.path.join(out_dir, 'triple-test.png')
-	plot_epoch(y_series=train_results, series_names=series_names, title=title,
+	plot_epoch(y_series=test_results, series_names=series_names, title=title,
 		y_errs=train_stds, y_label='Accuracy [%]', out_path=out_path,
-		legend_location='upper left')
+		legend_location='upper left', show=show_plot)
 
 if __name__ == '__main__':
 	basic_sim()
 	# bulk_sim()
-	# vary_params(out_dir=r'D:\annt\test\MLP_Network')
+	# vary_params(out_dir=r'D:\annt\test\MLP_Network', show_plot=False)
