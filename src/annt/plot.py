@@ -22,8 +22,9 @@ __docformat__ = 'epytext'
 import itertools
 
 # Third-Party imports
-import numpy             as np
-import matplotlib.pyplot as plt
+import numpy              as np
+import matplotlib.pyplot  as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def plot_epoch(y_series, series_names=None, y_errs=None, y_label=None,
 	title=None, semilog=False, legend_location='best', out_path=None,
@@ -144,4 +145,53 @@ def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
 	
 	# Show the plot and close it after the user is done
 	if show is not None: plt.show()
+	plt.close()
+
+def plot_surface(x, y, z, x_label=None, y_label=None, z_label=None,
+	title=None, out_path=None, show=True):
+	"""
+	Basic plotter function for plotting surface plots
+	
+	@param x: A sequence containing the x-axis data.
+	
+	@param y: A sequence containing the y-axis data.
+	
+	@param z: A sequence containing the z-axis data.
+	
+	@param x_label: The label to use for the x-axis.
+	
+	@param y_label: The label to use for the y-axis.
+	
+	@param z_label: The label to use for the z-axis.
+	
+	@param title: The name of the plot.
+	
+	@param out_path: The full path to where the image should be saved. The file
+	extension of this path will be used as the format type. If this value is
+	None then the plot will not be saved, but displayed only.
+	
+	@param show: If True the plot will be show upon creation.
+	"""
+	
+	# Construct the basic plot
+	fig  = plt.figure()
+	ax   = fig.add_subplot(111, projection='3d')
+	surf = ax.plot_surface(x, y, z, cmap=plt.cm.jet, rstride=1, cstride=1,
+		linewidth=0)
+	fig.colorbar(surf, shrink=0.5, aspect=5)
+	ax.view_init(azim=58, elev=28)
+	
+	# Add the labels
+	if title   is not None : plt.title(title)
+	if x_label is not None : ax.set_xlabel(x_label)
+	if y_label is not None : ax.set_ylabel(y_label)
+	if z_label is not None : ax.set_zlabel(z_label)
+	
+	# Save the plot
+	fig.set_size_inches(19.20, 10.80)
+	if out_path is not None:
+		plt.savefig(out_path, format=out_path.split('.')[-1], dpi = 100)
+	
+	# Show the plot and close it after the user is done
+	if show: plt.show()
 	plt.close()
