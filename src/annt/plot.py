@@ -25,8 +25,9 @@ import itertools
 import numpy             as np
 import matplotlib.pyplot as plt
 
-def basic_epoch(y_series, series_names=None, y_label=None, title=None,
-	semilog=False, legend_location='best', out_path=None, show=True):
+def plot_epoch(y_series, series_names=None, y_errs=None, y_label=None,
+	title=None, semilog=False, legend_location='best', out_path=None,
+	show=True):
 	"""
 	Basic plotter function for plotting various types of data against
 	training epochs. Each item in the series should correspond to a single
@@ -35,6 +36,10 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	@param y_series: A tuple containing all of the desired series to plot.
 	
 	@param series_names: A tuple containing the names of the series.
+	
+	@param y_errs: The error in the y values. There should be one per series
+	per datapoint. It is assumed this is the standard deviation, but any error
+	will work.
 	
 	@param y_label: The label to use for the y-axis.
 	
@@ -56,10 +61,10 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 	# Construct the basic plot
 	fig, ax = plt.subplots()
 	if title is not None   : plt.title(title)
+	if semilog             : ax.set_yscale('log')
+	if y_label is not None : ax.set_ylabel(y_label)
 	ax.set_xlabel('Epoch')
 	plt.xlim((1, max([x.shape[0] for x in y_series])))
-	if semilog: ax.set_yscale('log')
-	if y_label is not None : ax.set_ylabel(y_label)
 	colormap = plt.cm.brg
 	colors   = itertools.cycle([colormap(i) for i in np.linspace(0, 0.9,
 		len(y_series))])
@@ -67,21 +72,28 @@ def basic_epoch(y_series, series_names=None, y_label=None, title=None,
 		'3', '4', '8', 's', 'p', '*', 'p', 'h', 'H', '+', 'D', 'd', '|', '_',
 		'TICKLEFT', 'TICKRIGHT', 'TICKUP', 'TICKDOWN', 'CARETLEFT',
 		'CARETRIGHT', 'CARETUP', 'CARETDOWN'])
-		
+	
 	# Add the data
-	for y in y_series:
-		x = np.arange(1, x.shape[0] + 1)
-		ax.scatter(x, y, color=colors.next(), marker=markers.next())
+	if y_errs is not None:
+		for y, err in zip(y_series, y_errs):
+			x = np.arange(1, x.shape[0] + 1)
+			ax.errorbar(x, y, yerr=err, color=colors.next(),
+				marker=markers.next())
+	else:
+		for y in y_series:
+			x = np.arange(1, x.shape[0] + 1)
+			ax.scatter(x, y, color=colors.next(), marker=markers.next())
 	
 	# Create the legend
 	if series_names is not None: plt.legend(series_names, loc=legend_location)
 	
 	# Save the plot
+	fig.set_size_inches(19.20, 10.80)
 	if out_path is not None:
-		plt.savefig(out_path, format=out_path.split('.')[-1])
+		plt.savefig(out_path, format=out_path.split('.')[-1], dpi = 100)
 	
 	# Show the plot and close it after the user is done
-	if show is not None: plt.show()
+	if show: plt.show()
 	plt.close()
 
 def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
@@ -126,8 +138,9 @@ def plot_weights(weights, nrows, ncols, shape, title=None, out_path=None,
 		ax.axes.get_yaxis().set_visible(False)
 	
 	# Save the plot
+	fig.set_size_inches(19.20, 10.80)
 	if out_path is not None:
-		plt.savefig(out_path, format=out_path.split('.')[-1])
+		plt.savefig(out_path, format=out_path.split('.')[-1], dpi = 100)
 	
 	# Show the plot and close it after the user is done
 	if show is not None: plt.show()
