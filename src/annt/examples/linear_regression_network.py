@@ -228,12 +228,12 @@ def vary_params(out_dir, nepochs=100, niters=10):
 	###########################################################################
 	
 	print '\nVarying the slope of the linear function'
-	slopes         = np.linspace(1, 10, 10)
-	train_results  = np.zeros((slopes.shape[0], nepochs))
-	train_stds     = np.zeros((slopes.shape[0], nepochs))
-	test_results   = np.zeros((slopes.shape[0], nepochs))
-	test_stds      = np.zeros((slopes.shape[0], nepochs))
-	series_names   = ['Slope = {0}'.format(x) for x in slopes]
+	slopes        = np.linspace(1, 10, 10)
+	train_results = np.zeros((slopes.shape[0], nepochs))
+	train_stds    = np.zeros((slopes.shape[0], nepochs))
+	test_results  = np.zeros((slopes.shape[0], nepochs))
+	test_stds     = np.zeros((slopes.shape[0], nepochs))
+	series_names  = ['Slope = {0}'.format(x) for x in slopes]
 	for i, slope in enumerate(slopes):
 		print 'Executing iteration {0} of {1}'.format(i + 1,
 			slopes.shape[0])

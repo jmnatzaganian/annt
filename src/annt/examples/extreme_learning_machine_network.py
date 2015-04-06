@@ -202,12 +202,12 @@ def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 	###########################################################################
 	
 	print 'Varying one layer'
-	shapes         = [[int(x)] for x in np.linspace(25, 250, 10)]
-	train_results  = np.zeros((len(shapes), nepochs))
-	train_stds     = np.zeros((len(shapes), nepochs))
-	test_results   = np.zeros((len(shapes), nepochs))
-	test_stds      = np.zeros((len(shapes), nepochs))
-	series_names   = ['Shape = {0}'.format(x) for x in shapes]
+	shapes        = [[int(x)] for x in np.linspace(25, 250, 10)]
+	train_results = np.zeros((len(shapes), nepochs))
+	train_stds    = np.zeros((len(shapes), nepochs))
+	test_results  = np.zeros((len(shapes), nepochs))
+	test_stds     = np.zeros((len(shapes), nepochs))
+	series_names  = ['Shape = {0}'.format(x) for x in shapes]
 	for i, shape in enumerate(shapes):
 		print 'Executing iteration {0} of {1}'.format(i + 1, len(shapes))
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
@@ -234,12 +234,12 @@ def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 	###########################################################################
 	
 	print '\nVarying two layers'
-	shapes         = [[250, int(x)] for x in np.linspace(10, 100, 10)]
-	train_results  = np.zeros((len(shapes), nepochs))
-	train_stds     = np.zeros((len(shapes), nepochs))
-	test_results   = np.zeros((len(shapes), nepochs))
-	test_stds      = np.zeros((len(shapes), nepochs))
-	series_names   = ['Shape = {0}'.format(x) for x in shapes]
+	shapes        = [[250, int(x)] for x in np.linspace(10, 100, 10)]
+	train_results = np.zeros((len(shapes), nepochs))
+	train_stds    = np.zeros((len(shapes), nepochs))
+	test_results  = np.zeros((len(shapes), nepochs))
+	test_stds     = np.zeros((len(shapes), nepochs))
+	series_names  = ['Shape = {0}'.format(x) for x in shapes]
 	for i, shape in enumerate(shapes):
 		print 'Executing iteration {0} of {1}'.format(i + 1, len(shapes))
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
@@ -266,12 +266,12 @@ def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 	###########################################################################
 	
 	print '\nVarying three layers'
-	shapes         = [[250, 100, int(x)] for x in np.linspace(5, 50, 10)]
-	train_results  = np.zeros((len(shapes), nepochs))
-	train_stds     = np.zeros((len(shapes), nepochs))
-	test_results   = np.zeros((len(shapes), nepochs))
-	test_stds      = np.zeros((len(shapes), nepochs))
-	series_names   = ['Shape = {0}'.format(x) for x in shapes]
+	shapes        = [[250, 100, int(x)] for x in np.linspace(5, 50, 10)]
+	train_results = np.zeros((len(shapes), nepochs))
+	train_stds    = np.zeros((len(shapes), nepochs))
+	test_results  = np.zeros((len(shapes), nepochs))
+	test_stds     = np.zeros((len(shapes), nepochs))
+	series_names  = ['Shape = {0}'.format(x) for x in shapes]
 	for i, shape in enumerate(shapes):
 		print 'Executing iteration {0} of {1}'.format(i + 1, len(shapes))
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \

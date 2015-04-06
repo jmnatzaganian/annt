@@ -218,12 +218,12 @@ def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 		{'nrows':3, 'ncols':10}, {'nrows':4, 'ncols':10},
 		{'nrows':4, 'ncols':10}, {'nrows':5, 'ncols':10},
 		{'nrows':5, 'ncols':10}]
-	weight_results     = []
-	train_results      = np.zeros((len(nclusters), nepochs))
-	train_stds         = np.zeros((len(nclusters), nepochs))
-	test_results       = np.zeros((len(nclusters), nepochs))
-	test_stds          = np.zeros((len(nclusters), nepochs))
-	series_names       = ['Clusters = {0}'.format(x) for x in nclusters]
+	weight_results = []
+	train_results  = np.zeros((len(nclusters), nepochs))
+	train_stds     = np.zeros((len(nclusters), nepochs))
+	test_results   = np.zeros((len(nclusters), nepochs))
+	test_stds      = np.zeros((len(nclusters), nepochs))
+	series_names   = ['Clusters = {0}'.format(x) for x in nclusters]
 	for i, ncluster in enumerate(nclusters):
 		print 'Executing iteration {0} of {1}'.format(i + 1, len(nclusters))
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
@@ -262,12 +262,12 @@ def vary_params(out_dir, nepochs=100, niters=10, show_plot=True):
 	###########################################################################
 	
 	print 'Varying boost increment and decrement amounts'
-	space              = np.linspace(0.001, .1, 100)
-	boost_pairs        = np.array([(x, y) for x in space for y in space])
-	train_results      = np.zeros((len(boost_pairs), nepochs))
-	train_stds         = np.zeros((len(boost_pairs), nepochs))
-	test_results       = np.zeros((len(boost_pairs), nepochs))
-	test_stds          = np.zeros((len(boost_pairs), nepochs))
+	space         = np.linspace(0.001, .1, 100)
+	boost_pairs   = np.array([(x, y) for x in space for y in space])
+	train_results = np.zeros((len(boost_pairs), nepochs))
+	train_stds    = np.zeros((len(boost_pairs), nepochs))
+	test_results  = np.zeros((len(boost_pairs), nepochs))
+	test_stds     = np.zeros((len(boost_pairs), nepochs))
 	for i, pair in enumerate(boost_pairs):
 		print 'Executing iteration {0} of {1}'.format(i + 1, len(boost_pairs))
 		(train_results[i], train_stds[i]), (test_results[i], test_stds[i]) =  \
