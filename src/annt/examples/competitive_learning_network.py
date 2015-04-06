@@ -119,8 +119,6 @@ def basic_sim(nepochs=100):
 	Perform a basic simulation.
 	
 	@param nepochs: The number of training epochs to perform.
-	
-	@param kargs: Any keyword arguments to pass to the main network simulation.
 	"""
 	
 	# Get the data

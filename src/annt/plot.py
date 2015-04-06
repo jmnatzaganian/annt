@@ -119,7 +119,7 @@ def plot_weights(weights, nrows, ncols, shape, title=None, cluster_titles=None,
 	
 	@param title: The name of the plot.
 	
-	@pram cluster_titles: The titles for each of the clusters.
+	@param cluster_titles: The titles for each of the clusters.
 	
 	@param out_path: The full path to where the image should be saved. The file
 	extension of this path will be used as the format type. If this value is
