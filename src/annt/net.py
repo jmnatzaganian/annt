@@ -647,6 +647,8 @@ class MultilayerPerception(SupervisedAccuracyNet):
 		@param x: The input data to compute for this step.
 		
 		@param y: The expected output.
+		
+		@return: The computed outputs from the output layer.
 		"""
 		
 		#######################################################################
@@ -867,6 +869,8 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		Compute a single step of the network.
 		
 		@param x: The input data to compute for this step.
+		
+		@return: The computed outputs.
 		"""
 		
 		# Shit outputs

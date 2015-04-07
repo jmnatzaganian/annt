@@ -17,12 +17,12 @@ import shutil
 # Install the program
 setup(
 	name='annt',
-	version='0.4.0',
+	version='0.5.0',
 	description="Artificial Neural Network Toolbox",
 	author='James Mnatzaganian',
 	author_email='jamesmnatzaganian@outlook.com',
 	url='http://techtorials.me',
-	packages=['annt', 'annt.examples'],
+	packages=['annt', 'annt.examples', 'annt.experimental'],
 	package_data={'annt.examples':['data/mnist.pkl']}
 	)
 

@@ -90,13 +90,13 @@ def one_hot(x, num_items):
 		y[i, ix] = 1
 	return y
 
-def threshold(x, threshold, min_value=-1, max_value=1):
+def threshold(x, thresh, min_value=-1, max_value=1):
 	"""
 	Threshold all of the data in a given matrix (2D).
 	
 	@param x: The array to threshold.
 	
-	@param threshold: The value to threshold at.
+	@param thresh: The value to threshold at.
 	
 	@param min_value: The minimum value to set the data to.
 	
@@ -106,7 +106,7 @@ def threshold(x, threshold, min_value=-1, max_value=1):
 	"""
 	
 	y = np.empty(x.shape); y.fill(min_value)
-	max_idx    = x >= threshold
+	max_idx    = x >= thresh
 	y[max_idx] = max_value
 	return y
 
