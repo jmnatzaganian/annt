@@ -22,8 +22,7 @@ __docformat__ = 'epytext'
 import numpy as np
 
 # Program imports
-from annt.activation import create_activation
-from annt.util       import get_random_paired_indexes, threshold
+from annt.util import get_random_paired_indexes, threshold
 
 ###############################################################################
 ########## Class Implementation
@@ -34,17 +33,9 @@ class Hopfield(object):
 	Base class for a Hopfield network.
 	"""
 	
-	def __init__(self, activation_type='sigmoid', activation_kargs={},
-		attractor_states=None):
+	def __init__(self, attractor_states=None):
 		"""
 		Initializes this Hopfield network.
-			
-		@param activation_type: The type activation function to use for the
-		neurons. This must be one of the classes implemented in
-		L{annt.activation}.
-		
-		@param activation_kargs: Any keyword arguments for the activation
-		function.
 		
 		@param attractor_states: The attractor states to use. This must be a
 		dictionary containing a unique state as the key (this should be a tuple
@@ -57,15 +48,12 @@ class Hopfield(object):
 		# Store the params
 		self.attractor_states = attractor_states
 		
-		# Initialize the activation function
-		self.activation = create_activation(activation_type,
-			**activation_kargs)
-		
 		# Construct the weights (if possible)
 		if self.attractor_states is not None:
 			self.initialize_weights()
 	
-	def create_attractor_states(self, x, y, nstates, nsamples, thresh):
+	def create_attractor_states(self, x, y, nstates, nsamples, thresh,
+		labels=None):
 		"""
 		Create the attractor states based off the labeled data. Additionally,
 		initialize the weights using the new attractor states.
@@ -82,9 +70,12 @@ class Hopfield(object):
 		y.
 		
 		@param thresh: The value to threshold at.
+		
+		@param labels: This parameter should be a list of the labels to use. If
+		it is None then all unique labels will be used.
 		"""
 		
-		idxs                  = [get_random_paired_indexes(y, nsamples)
+		idxs                  = [get_random_paired_indexes(y, nsamples, labels)
 			for _ in xrange(nstates)]
 		self.attractor_states = {}
 		for idx in idxs:

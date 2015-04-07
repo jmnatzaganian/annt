@@ -28,36 +28,12 @@ import numpy as np
 
 # Program imports
 from annt.util                      import mnist_data, threshold
+from annt.util                      import flip_random_bits
 from annt.experimental.hopfield_net import Hopfield
 from annt.plot                      import plot_weights
 
-def plot_attractor_states(net, nrows, ncols, shape, **kargs):
-	"""
-	Plot the attractor states.
-	
-	@param net: A Hopfield network instance.
-	
-	@param nrows: The number of rows of plots to create.
-	
-	@param ncols: The number of columns of plots to create.
-	
-	@param shape: The shape of the weights. It is assumed that a 1D shape was
-	used and is desired to be represented in 2D. Whatever shape is provided
-	will be used to reshape the weights. For example, if you had a 28x28 image
-	and each weight corresponded to one pixel, you would have a vector with a
-	shape of (784, ). This vector would then need to be resized to your desired
-	shape of (28, 28).
-	
-	@param kargs: Any additional keyword arguments for the "plot_weights"
-	function.
-	"""
-	
-	plot_weights(np.array(net.attractor_states.keys()), nrows, ncols, shape,
-		**kargs)
-
-def main(train_data, train_labels, test_data, test_labels, plot=True,
-	verbose=True, activation_type='sigmoid', activation_kargs={}, nsamples=10,
-	nstates=1):
+def main(train_data, train_labels, nsamples=10, nstates=1, labels=[0],
+	pct_noise=0.3, plot=True):
 	"""
 	Demonstrates a hopfield network using MNIST.
 	
@@ -67,23 +43,6 @@ def main(train_data, train_labels, test_data, test_labels, plot=True,
 	@param train_labels: The training labels. This must be an iterable with the
 	same length as train_data.
 	
-	@param test_data: The data to test with. This must be an iterable returning
-	a numpy array.
-	
-	@param test_labels: The testing labels. This must be an iterable with the
-	same length as train_data.
-	
-	@param plot: If True, a plot will be created.
-	
-	@param verbose: If True, the network will print results after every
-	iteration.
-	
-	@param activation_type: The type activation function to use for the
-	neurons. This must be one of the classes implemented in
-	L{annt.activation}.
-	
-	@param activation_kargs: Any keyword arguments for the activation function.
-	
 	@param nsamples: The number of samples to use for generating the attractor
 	states.
 	
@@ -91,30 +50,44 @@ def main(train_data, train_labels, test_data, test_labels, plot=True,
 	creating a number of attractor states equal to the amount of unique labels
 	multiplied by this value.
 	
-	@return: A tuple containing the training and testing results, respectively.
+	@param labels: This parameter should be a list of the labels to use. If it
+	is None then all unique labels will be used.
+	
+	@param pct_noise: The percentage of noise to be added to the attractor
+	state.
+	
+	@param plot: If True one or more plots are generated showing the attractor
+	states.
+	
+	@return: A list of lists containing the attractor state, the attractor
+	state with noise, and the found attractor state, respectively.
 	"""
 	
 	# Create the network
-	net   =  Hopfield(
-		activation_type  = activation_type,
-		activation_kargs = activation_kargs
-	)
+	net = Hopfield()
 	
 	# Initialize the attractor states
 	net.create_attractor_states(train_data, train_labels, nstates, nsamples,
-		255 / 2)
+		255 / 2, labels=labels)
 	
-	# Simulate the network
-	train_results, test_results = net.run(train_data, train_labels,
-		test_data, test_labels, nepochs, verbose)
+	# Check noise tolerance with all of the activation states
+	all_states = []
+	for state in net.attractor_states.keys():
+		# Get the states
+		states = []
+		states.append(np.array(state))
+		states.append(flip_random_bits(states[0], pct_noise))
+		states.append(net.step(states[1]))
+		all_states.append(np.copy(states))
+		
+		# Make the plot
+		if plot:
+			plot_weights(states, 1, 3, (28, 28), title='Hopfield Network - '
+				'Noise Tolerance Example\nFlipped {0}% of the bits'.format(
+				pct_noise * 100), cluster_titles=('Attractor State',
+				'Attractor State with Noise', 'Found Attractor'))
 	
-	# # Plot the results
-	# if plot:
-		# plot_epoch(y_series=(train_results * 100, test_results * 100),
-			# series_names=('Train', 'Test'), y_label='Accuracy [%]',
-			# title='MLP - Example', legend_location='upper left')
-	
-	# return train_results * 100, test_results * 100
+	return all_states
 
 def basic_sim():
 	"""
@@ -124,24 +97,24 @@ def basic_sim():
 	# Get the data
 	(train_data, train_labels), (test_data, test_labels) = mnist_data()
 	
-	# Scale pixel values to be between -1 and 1
 	# Run the network
-	main(threshold(train_data, 255 / 2), train_labels,
-		threshold(test_data, 255 / 2), test_labels, nepochs=nepochs)
+	main(threshold(train_data, 255 / 2), train_labels)
 
-def vary_params(out_dir, show_plot=True):
+def vary_params(out_dir, show_plot=True, seed=None):
 	"""
 	Vary some parameters and generate some plots.
 	
 	@param out_dir: The directory to save the plots in.
 	
 	@param show_plot: If True the plot will be displayed upon creation.
-	"""
+	
+	@param seed: The seed for the random number generator. This will force the
+	network to work with the same data.
+	"""	
 	
 	# Get the data
 	(train_data, train_labels), (test_data, test_labels) = mnist_data()
 	train_d = threshold(train_data, 255 / 2)
-	test_d  = threshold(test_data, 255 / 2)
 	
 	# Make the output directory
 	try:
@@ -153,14 +126,44 @@ def vary_params(out_dir, show_plot=True):
 	###### Vary number of attractors
 	###########################################################################
 	
-	
+	cluster_titles = ['Attractor State', 'Input', 'Found Attractor']
+	for i in xrange(1, 4):
+		np.random.seed(seed)
+		states = np.array(main(train_d, train_labels, labels=np.arange(i),
+			pct_noise=0, plot=False))
+		plot_weights(states.reshape(states.shape[1] * states.shape[0],
+			states.shape[2]), i, 3, (28, 28), title='Hopfield Network - {0} '
+			'Attractor State(s)'.format(i), cluster_titles=cluster_titles * i,
+			out_path=os.path.join(out_dir, 'states_{0}.png'.format(i)),
+			show=show_plot)
 	
 	###########################################################################
 	###### Vary amount of noise on input
 	###########################################################################
 	
-	
+	noise_ranges = (0.4, 0.6)
+	cluster_titles = ['Attractor State', 'Input with {0}% Noise',
+		'Found Attractor'] * len(noise_ranges)
+	for i, noise in enumerate(noise_ranges):
+		cluster_titles[i * 3 + 1] = cluster_titles[i * 3 + 1].format(noise *
+			100)
+	for i in xrange(1, 3):
+		new_title = [y for x in [[cluster_titles[0], cluster_titles[3 * j + 1],
+			cluster_titles[2]] * i for j in xrange(len(noise_ranges))]
+			for y in x]
+		states = []
+		for noise in noise_ranges:
+			np.random.seed(seed)
+			states.extend(main(train_d, train_labels, labels=np.arange(i),
+				pct_noise=noise, plot=False))
+		states = np.array(states)
+		plot_weights(states.reshape(states.shape[1] * states.shape[0],
+			states.shape[2]), len(noise_ranges) * i, 3, (28, 28),
+			title='Hopfield Network - Noise  Tolerance'.format(noise * 100),
+			cluster_titles=new_title, out_path=os.path.join(out_dir,
+			'noise_states_{0}.png'.format(i)), show=show_plot)
 
 if __name__ == '__main__':
 	basic_sim()
-	# vary_params(out_dir=r'D:\annt\test\MLP_Network', show_plot=False)
+	# vary_params(out_dir=r'D:\annt\test\Hopfield_Network', show_plot=False,
+		# seed=123456789)

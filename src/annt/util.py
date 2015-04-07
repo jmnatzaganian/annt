@@ -110,15 +110,18 @@ def threshold(x, thresh, min_value=-1, max_value=1):
 	y[max_idx] = max_value
 	return y
 
-def get_random_paired_indexes(y, nsamples):
+def get_random_paired_indexes(y, nsamples, labels=None):
 	"""
 	Get a list of indexes corresponding to random selections of the data in y.
-	A total of nsamples will be returned for each unique value in y.
+	A total of nsamples will be returned for each specified label.
 	
 	@param y: A numpy array consisting of labels.
 	
 	@param nsamples: The number of samples to obtain for each unique value in
 	y.
+	
+	@param labels: This parameter should be a list of the labels to use. If it
+	is None then all unqiue labels will be used.
 	
 	@return: A dictionary containing the indexes in y corresponding to each
 	unique value in y. There will be a total of nsamples indexes.
@@ -128,7 +131,11 @@ def get_random_paired_indexes(y, nsamples):
 	"""
 	
 	# Extract initial indexes
-	keys = np.unique(y)
+	if labels is None:
+		keys = np.unique(y)
+	else:
+		keys = np.array(labels)
+	
 	idx  = [np.where(key == y)[0] for key in keys]
 	
 	# Check to make sure it is possible
@@ -142,3 +149,30 @@ def get_random_paired_indexes(y, nsamples):
 	
 	# Build final result
 	return {key:ix[:nsamples] for key, ix in zip(keys, idx)}
+
+def flip_random_bits(x, pct, states={-1:1, 1:-1}):
+	"""
+	Randomly flip bits in the input stream.
+	
+	@param x: The input data to work with. This must be a vector.
+	
+	@param pct: The percentage of bits to flip.
+	
+	@param states: A dictionary containing the state representations. Each
+	valid state should be mapped to its own, unique, complement and vice-versa.
+	For example, if the bit stream consists of the set (1, -1) and '1' is the
+	inverse of '-1' and vice-versa, the states parameter should be set to
+	{-1:1, 1:-1}.
+	
+	@return: The flipped array.
+	"""
+	
+	y        = np.copy(x)
+	max_bits = int(x.shape[0] * pct)
+	idx      = np.arange(x.shape[0])
+	np.random.shuffle(idx)
+	
+	for ix in idx[:max_bits]:
+		y[ix] = states[x[ix]]
+	
+	return y
