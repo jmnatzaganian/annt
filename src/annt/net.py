@@ -870,7 +870,7 @@ class CompetitiveLearning(UnsupervisedCostNet):
 		@return: The computed outputs.
 		"""
 		
-		# Shit outputs
+		# Shift outputs
 		self.outputs = np.roll(self.outputs, 1, 1)
 		
 		# Calculate the outputs
